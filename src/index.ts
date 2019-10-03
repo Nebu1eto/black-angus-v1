@@ -1,8 +1,10 @@
-class BlackAngusBot {
-  static CONFIGURATION: IConfigurations = require(process.env.CONFIG_FILE as string)
+import { DiscordConnector } from './connectors/DiscordConnector'
 
-  async start () {
-    // ...
+class BlackAngusBot {
+  private discord: DiscordConnector = new DiscordConnector()
+
+  start () {
+    return this.discord.setupDiscordConnector()
   }
 }
 

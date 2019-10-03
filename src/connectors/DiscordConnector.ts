@@ -5,6 +5,7 @@ import { CommandFactory } from '../commands/core/CommandFactory'
 import { LoggingQueue } from '../services/LoggingQueue'
 import { tryCatch } from '../utils/tryCatch'
 import { flatPromiseMap } from '../utils/flatPromiseMap'
+import { BOT_CONFIG } from '../configs/IConfigurations'
 
 export type MessageCallback = (message: Message) => Promise<any>
 
@@ -44,6 +45,6 @@ export class DiscordConnector {
     })
 
     // TODO: Put token in here.
-    await this.client.login()
+    await this.client.login(BOT_CONFIG.DISCORD_TOKEN)
   }
 }

@@ -1,4 +1,4 @@
-import { OperatorFunction, from, Observable } from 'rxjs'
+import { OperatorFunction, from } from 'rxjs'
 import { flatMap } from 'rxjs/operators'
 
 // flatMap but with Promise. not Observable

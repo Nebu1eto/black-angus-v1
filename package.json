@@ -14,6 +14,7 @@
   "license": "MIT",
   "devDependencies": {
     "@types/bluebird": "^3.5.27",
+    "@types/debug": "^4.1.5",
     "@types/lodash": "^4.14.136",
     "@types/node": "^12.7.2",
     "ava": "^2.2.0",
@@ -25,12 +26,16 @@
   },
   "dependencies": {
     "@discordjs/uws": "^11.149.1",
+    "@types/date-fns": "^2.6.0",
     "bluebird": "^3.5.5",
     "bufferutil": "^4.0.1",
+    "date-fns": "^2.4.1",
+    "debug": "^4.1.1",
     "discord.js": "^11.5.1",
     "ioredis": "^4.14.0",
     "lodash": "^4.17.15",
-    "rxjs": "^6.5.2",
+    "rxjs": "^6.5.3",
+    "rxjs-compat": "^6.5.3",
     "typegoose": "^5.9.0"
   }
 }

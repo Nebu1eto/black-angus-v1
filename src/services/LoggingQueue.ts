@@ -1,19 +1,13 @@
-import { Subscriber } from 'rxjs'
+import { Subject } from 'rxjs'
+import { Message } from 'discord.js'
 
-export class LoggingQueue {
-  private static instance: LoggingQueue
-  private errorSubscriber: Subscriber<Error> = new Subscriber()
-  private 
+export interface ILoggingError {
+  time: Date,
+  error: Error,
+  context: Message
+}
 
-  private constructor () {}
-
-  static getInstance (): LoggingQueue {
-    if (!LoggingQueue.instance) {
-      LoggingQueue.instance = new LoggingQueue()
-    }
-
-    return LoggingQueue.instance
-  }
-
-
+export const LoggingQueue = {
+  errorSubject: new Subject<ILoggingError>(),
+  debugSubject: new Subject<string[]>()
 }

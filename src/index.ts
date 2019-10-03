@@ -1,10 +1,16 @@
 import { DiscordConnector } from './connectors/DiscordConnector'
+import { Promise as Bluebird } from 'Bluebird'
+import { initializeCommands } from './core/initializeCommands'
+
+// Install Bluebird Polyfill.
+global.Promise = Bluebird
 
 class BlackAngusBot {
   private discord: DiscordConnector = new DiscordConnector()
 
-  start () {
-    return this.discord.setupDiscordConnector()
+  async start () {
+    await initializeCommands()
+    await this.discord.setupDiscordConnector()
   }
 }
 

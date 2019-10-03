@@ -5,6 +5,7 @@ export interface IConfigurations {
   DEBUG_ERROR_TO_CHANNEL: boolean           // true
   DEBUG_HISTORY_OR_ERROR_CHANNEL: string    // "log_channel"
   DISCORD_TOKEN: string
+  CLIENT_ID: string
 }
 
 export const BOT_CONFIG: IConfigurations = require(

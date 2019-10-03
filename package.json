@@ -1,0 +1,36 @@
+{
+  "name": "black-angus-bot",
+  "version": "1.0.0",
+  "description": "Multi-Purpose Discord Bot",
+  "main": "src/index.ts",
+  "scripts": {
+    "run": "",
+    "pretest": "",
+    "test": "ava",
+    "posttest": "",
+    "build": ""
+  },
+  "author": "Haze Lee <hazelee@realignist.me>",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/bluebird": "^3.5.27",
+    "@types/lodash": "^4.14.136",
+    "@types/node": "^12.7.2",
+    "ava": "^2.2.0",
+    "rxjs-tslint": "^0.1.7",
+    "ts-node": "^8.3.0",
+    "tslint": "^5.18.0",
+    "tslint-config-standard": "^8.0.1",
+    "typescript": "^3.5.3"
+  },
+  "dependencies": {
+    "@discordjs/uws": "^11.149.1",
+    "bluebird": "^3.5.5",
+    "bufferutil": "^4.0.1",
+    "discord.js": "^11.5.1",
+    "ioredis": "^4.14.0",
+    "lodash": "^4.17.15",
+    "rxjs": "^6.5.2",
+    "typegoose": "^5.9.0"
+  }
+}

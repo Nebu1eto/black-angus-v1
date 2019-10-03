@@ -6,6 +6,10 @@ export interface IConfigurations {
   DEBUG_HISTORY_OR_ERROR_CHANNEL: string    // "log_channel"
   DISCORD_TOKEN: string
   CLIENT_ID: string
+  MONGODB_ADDRESS: string
+
+  EMOTICON_ENABLED: boolean
+  EMOTICON_FILE_PATH: string                // must be an absolute path
 }
 
 export const BOT_CONFIG: IConfigurations = require(

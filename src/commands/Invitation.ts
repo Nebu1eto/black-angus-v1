@@ -8,7 +8,7 @@ export class Invitation implements ICommand {
   type: CommandType = CommandType.ADMIN_COMMANDS
   prefix: string = '!'
 
-  async action(context: Message) {
+  async action (context: Message) {
     const { content, channel } = context
     if (content.indexOf('!초대') === -1) {
       return

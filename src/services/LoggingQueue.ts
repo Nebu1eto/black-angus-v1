@@ -4,7 +4,7 @@ import { Message } from 'discord.js'
 export interface ILoggingError {
   time: Date,
   error: Error,
-  context: Message
+  context?: Message
 }
 
 export const LoggingQueue = {

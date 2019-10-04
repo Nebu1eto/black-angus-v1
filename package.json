@@ -16,6 +16,7 @@
   "devDependencies": {
     "@types/axios": "^0.14.0",
     "@types/bluebird": "^3.5.27",
+    "@types/cheerio": "^0.22.13",
     "@types/debug": "^4.1.5",
     "@types/lodash": "^4.14.141",
     "@types/mongoose": "^5.5.18",
@@ -34,6 +35,7 @@
     "axios": "^0.19.0",
     "bluebird": "^3.7.0",
     "bufferutil": "^4.0.1",
+    "cheerio": "^1.0.0-rc.3",
     "date-fns": "^2.4.1",
     "debug": "^4.1.1",
     "discord.js": "^11.5.1",

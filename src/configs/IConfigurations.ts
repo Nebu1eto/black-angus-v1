@@ -5,7 +5,7 @@ export interface IConfigurations {
   DEBUG_ERROR_TO_CHANNEL: boolean           // true
   DEBUG_HISTORY_OR_ERROR_CHANNEL: string    // "log_channel"
   DISCORD_TOKEN: string
-  CLIENT_ID: string
+  DISCORD_CLIENT_ID: string
   MONGODB_ADDRESS: string
 
   EMOTICON_ENABLED: boolean

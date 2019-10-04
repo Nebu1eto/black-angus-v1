@@ -16,7 +16,7 @@ export class Invitation implements ICommand {
 
     await channel.send(
       'https://discordapp.com/oauth2/authorize?' +
-        `client_id=${BOT_CONFIG.CLIENT_ID}` +
+        `client_id=${BOT_CONFIG.DISCORD_CLIENT_ID}` +
         '&scope=bot&permissions=201444416'
     )
   }

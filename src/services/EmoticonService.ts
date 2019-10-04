@@ -201,20 +201,18 @@ export class EmoticonService {
       return [ match.path ]
     }
 
-    return []
-    // TODO: Implement String Simillarity Search
-    // // 2. find simillar one
-    // const searched = await EmoticonModel.find({
-    //   name: new RegExp(name, 'i'),
-    //   removed: false
-    // }).exec()
+    // 2. find simillar one
+    const searched = await EmoticonModel.find({
+      name: new RegExp(name),
+      removed: false
+    }).exec()
 
-    // await Promise.all(
-    //   searched.map(emoticon =>
-    //     this.insertLog(EmoticonActionType.READ, context, emoticon)
-    //   )
-    // )
-    // return _.uniq(searched.map(emoticon => emoticon.path))
+    await Promise.all(
+      searched.map(emoticon =>
+        this.insertLog(EmoticonActionType.READ, context, emoticon)
+      )
+    )
+    return _.uniq(searched.map(emoticon => emoticon.path))
   }
 
   public async getEquivalents (name: string) {

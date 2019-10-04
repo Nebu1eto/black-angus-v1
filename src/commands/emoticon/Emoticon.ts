@@ -15,7 +15,7 @@ export class Emoticon implements ICommand {
       return
     }
 
-    const name = content.substring(1, content.length - 1)
+    const name = content.substring(1, content.length)
     const result = await EmoticonService.getInstance().fetchOrSearch(
       context,
       name

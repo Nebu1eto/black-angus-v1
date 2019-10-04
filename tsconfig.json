@@ -39,7 +39,8 @@
     "test"
   ],
   "include": [
-    "src"
+    "src",
+    "scripts"
   ],
   "compileOnSave": false
 }

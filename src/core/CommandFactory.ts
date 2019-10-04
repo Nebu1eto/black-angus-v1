@@ -51,7 +51,6 @@ export class CommandFactory {
     const commandsAsTypes = (type: CommandType) => {
       return _.chain(Array.from(this.commands.values()))
         .filter(command => command.type === type)
-        .map(command => command.action)
         .value()
     }
 
@@ -61,9 +60,9 @@ export class CommandFactory {
     // 3-1. Run Administrator Commands First.
     // 3-2. Run Features Command Next.
     // 3-3. Run Variable Command at Last.
-    await Promise.all(commands[CommandType.ADMIN_COMMANDS].map(action => action(context)))
-      .then(() => Promise.all(commands[CommandType.FEATURE_COMMANDS].map(action => action(context))))
-      .then(() => Promise.all(commands[CommandType.VARIABLE_COMMANDS].map(action => action(context))))
+    await Promise.all(commands[CommandType.ADMIN_COMMANDS].map(command => command.action(context)))
+      .then(() => Promise.all(commands[CommandType.FEATURE_COMMANDS].map(command => command.action(context))))
+      .then(() => Promise.all(commands[CommandType.VARIABLE_COMMANDS].map(command => command.action(context))))
       .catch(error => {
         // 3-failure: Log Error Data
         LoggingQueue.errorSubject.next({

@@ -62,7 +62,7 @@ export class DiscordConnector {
         if (!channel) return
 
         const attach = new RichEmbed()
-          .setColor('red')
+          .setColor('#ff4444')
           .setTitle('Runtime Error')
           .setDescription(messages[0])
           .addField('Title', messages[1])

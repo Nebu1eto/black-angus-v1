@@ -8,9 +8,11 @@ import path from 'path'
 import { URL } from 'url'
 import util from 'util'
 import { BOT_CONFIG } from '../configs/IConfigurations'
-import { Emoticon, EmoticonActionType, EmoticonLogModel, EmoticonModel } from '../models/Emotion'
+import { Emoticon, EmoticonActionType, EmoticonLogModel, EmoticonModel, EmoticonNameModel } from '../models/Emotion'
 import { tryCatch } from '../utils/tryCatch'
 import { LoggingQueue } from './LoggingQueue'
+import { ko } from 'date-fns/locale'
+import { format } from 'date-fns'
 
 const writeFile = util.promisify(fs.writeFile)
 const mkdir = util.promisify(fs.mkdir)
@@ -18,7 +20,6 @@ const stat = util.promisify(fs.stat)
 
 export class EmoticonService {
   private static instance: EmoticonService
-  private hash = crypto.createHash('sha1')
 
   private constructor () {}
 
@@ -43,7 +44,10 @@ export class EmoticonService {
   }
 
   private getFileName (file: Buffer) {
-    return this.hash.update(file).digest('hex')
+    return crypto
+      .createHash('sha1')
+      .update(file)
+      .digest('hex')
   }
 
   private async downloadFile (rawUrl: string) {
@@ -78,13 +82,23 @@ export class EmoticonService {
 
   private insertLog (type: EmoticonActionType, context: Message, emoticon: DocumentType<Emoticon>) {
     return EmoticonLogModel.create({
-      type, context, emoticon
+      type,
+      context: `[${format(new Date(), 'yyyy. MM. dd. a hh:mm:ss', {
+        locale: ko
+      })}] <${context.author.username}#${context.author.discriminator}> ${
+        context.content
+      }`,
+      emoticon
     })
   }
 
   public async upload (context: Message, name: string, rawUrl: string) {
+    const prev = await EmoticonModel.findOne({ name, removed: false }).exec()
+    if (prev) return `${name} 항목이 이미 존재합니다.`
+
+    const path = await this.downloadFile(rawUrl)
     const [err, emoticon] = await tryCatch(EmoticonModel.create({
-      name, path: this.downloadFile(rawUrl)
+      name, path
     }))
 
     if (err) {
@@ -92,6 +106,7 @@ export class EmoticonService {
       return `${name} 항목을 추가하는 중 오류가 발생했습니다.`
     }
 
+    await EmoticonNameModel.create({ name })
     await this.insertLog(EmoticonActionType.CREATE, context, emoticon!)
     return `${name} 항목을 데이터베이스에 추가했습니다.`
   }
@@ -123,6 +138,7 @@ export class EmoticonService {
       await this.insertLog(EmoticonActionType.UPDATE, context, emoticon)
     }))
 
+    await EmoticonNameModel.create({ name })
     await this.insertLog(EmoticonActionType.CREATE, context, duplicated!)
     return `${name} 항목을 데이터베이스에 추가했습니다.`
   }
@@ -156,6 +172,9 @@ export class EmoticonService {
     prev.removed = true
     prev.updatedAt = new Date()
     await prev.save()
+
+    // remove name index too.
+    await EmoticonNameModel.remove({ name }).exec()
 
     // remove equivalents too.
     const equivalents = await EmoticonModel.find({
@@ -203,5 +222,10 @@ export class EmoticonService {
     }
 
     return `${name} 항목이 존재하지 않습니다.`
+  }
+
+  public async getEmoticonLists () {
+    const result = await EmoticonNameModel.find().exec()
+    return _.uniq(result.map(r => r.name))
   }
 }

@@ -1,4 +1,4 @@
-import { prop, getModelForClass, Ref } from '@typegoose/typegoose'
+import { prop, getModelForClass, Ref, arrayProp } from '@typegoose/typegoose'
 
 export class Emoticon {
   @prop({ required: true, minlength: 1, maxlength: 10 })
@@ -10,13 +10,13 @@ export class Emoticon {
   @prop({ required: true })
   path!: string
 
-  @prop({ default: false, required: true })
+  @prop({ default: false })
   removed!: boolean
 
-  @prop({ required: true, default: new Date() })
+  @prop({ default: new Date() })
   createdAt!: Date
 
-  @prop({ required: true, default: new Date() })
+  @prop({ default: new Date() })
   updatedAt!: Date
 }
 
@@ -34,12 +34,19 @@ export class EmoticonLog {
   @prop({ ref: Emoticon })
   emoticon?: Ref<Emoticon>
 
-  @prop({ required: true, default: new Date() })
+  @prop({ default: new Date() })
   createdAt!: Date
 
-  @prop({ default: null })
-  context!: object | null
+  @prop({ default: '' })
+  context!: string
+}
+
+// for search emoticon lists more fast.
+export class EmoticonName {
+  @prop({ required: true })
+  name!: string
 }
 
 export const EmoticonModel = getModelForClass(Emoticon)
 export const EmoticonLogModel = getModelForClass(EmoticonLog)
+export const EmoticonNameModel = getModelForClass(EmoticonName)

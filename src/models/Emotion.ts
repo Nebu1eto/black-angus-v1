@@ -5,10 +5,13 @@ export class Emoticon {
   name!: string
 
   @prop({ default: [] })
-  equivalent: string[] = []
+  equivalents: string[] = []
 
   @prop({ required: true })
   path!: string
+
+  @prop({ default: false, required: true })
+  removed!: boolean
 
   @prop({ required: true, default: new Date() })
   createdAt!: Date
@@ -17,7 +20,7 @@ export class Emoticon {
   updatedAt!: Date
 }
 
-export enum EmotionActionType {
+export enum EmoticonActionType {
   CREATE = 'CREATE',
   READ = 'READ',
   UPDATE = 'UPDATE',
@@ -25,8 +28,8 @@ export enum EmotionActionType {
 }
 
 export class EmoticonLog {
-  @prop({ default: EmotionActionType.READ })
-  type!: EmotionActionType
+  @prop({ default: EmoticonActionType.READ })
+  type!: EmoticonActionType
 
   @prop({ ref: Emoticon })
   emoticon?: Ref<Emoticon>
@@ -34,8 +37,8 @@ export class EmoticonLog {
   @prop({ required: true, default: new Date() })
   createdAt!: Date
 
-  @prop({ default: '' })
-  context!: string
+  @prop({ default: null })
+  context!: object | null
 }
 
 export const EmoticonModel = getModelForClass(Emoticon)

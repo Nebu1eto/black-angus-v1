@@ -14,6 +14,7 @@
   "author": "Haze Lee <hazelee@realignist.me>",
   "license": "MIT",
   "devDependencies": {
+    "@types/axios": "^0.14.0",
     "@types/bluebird": "^3.5.27",
     "@types/debug": "^4.1.5",
     "@types/lodash": "^4.14.141",
@@ -30,6 +31,7 @@
     "@discordjs/uws": "^11.149.1",
     "@typegoose/typegoose": "^6.0.1",
     "@types/date-fns": "^2.6.0",
+    "axios": "^0.19.0",
     "bluebird": "^3.7.0",
     "bufferutil": "^4.0.1",
     "date-fns": "^2.4.1",

@@ -13,5 +13,7 @@ export interface IConfigurations {
 }
 
 export const BOT_CONFIG: IConfigurations = require(
-  path.join(process.cwd(), process.env.CONFIG_FILE as string)
+  (process.env.CONFIG_FILE as string).startsWith('.')
+    ? path.join(process.cwd(), process.env.CONFIG_FILE as string)
+    : (process.env.CONFIG_FILE as string)
 )

@@ -10,7 +10,7 @@ export class Invitation implements ICommand {
 
   async action (context: Message) {
     const { content, channel } = context
-    if (content.indexOf('초대') === -1) {
+    if (content.indexOf('!초대') === -1) {
       return
     }
 

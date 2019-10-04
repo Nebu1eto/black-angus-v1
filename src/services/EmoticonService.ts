@@ -198,7 +198,10 @@ export class EmoticonService {
     const match = await EmoticonModel.findOne({ name, removed: false }).exec()
     if (match) {
       await this.insertLog(EmoticonActionType.READ, context, match)
-      return [ match.path ]
+      return {
+        matched: true,
+        value: match.path
+      }
     }
 
     // 2. find simillar one
@@ -207,12 +210,10 @@ export class EmoticonService {
       removed: false
     }).exec()
 
-    await Promise.all(
-      searched.map(emoticon =>
-        this.insertLog(EmoticonActionType.READ, context, emoticon)
-      )
-    )
-    return _.uniq(searched.map(emoticon => emoticon.path))
+    return {
+      matched: false,
+      value: _.uniq(searched.map(emoticon => emoticon.name)).sort()
+    }
   }
 
   public async getEquivalents (name: string) {

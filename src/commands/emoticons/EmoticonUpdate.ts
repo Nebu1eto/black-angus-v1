@@ -11,7 +11,7 @@ export class EmoticonUpdate implements ICommand {
 
   async action (context: Message) {
     const { content, channel } = context
-    if (content.indexOf('수정') === -1 || !BOT_CONFIG.EMOTICON_ENABLED) {
+    if (content.indexOf('!수정') === -1 || !BOT_CONFIG.EMOTICON_ENABLED) {
       return
     }
 

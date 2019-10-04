@@ -14,7 +14,7 @@ export class RiverTemp implements ICommand {
 
   async action (context: Message) {
     const { content, channel } = context
-    if (_.every(['자살', '한강', '한강수온', '퐁당'].map(
+    if (_.every(['!자살', '!한강', '!한강수온', '!퐁당'].map(
       item => content.indexOf(item) === -1
     ))) return
 

@@ -16,21 +16,13 @@ export class Emoticon implements ICommand {
     }
 
     const name = content.substring(1, content.length)
-    const result = await EmoticonService.getInstance().fetchOrSearch(
+    const file = await EmoticonService.getInstance().fetch(
       context,
       name
     )
 
-    // if result is empty, then ignore
-    const data = result.matched
-      ? { file: result.value }
-      : `요청하신 ${name} 항목은 찾지 못하였습니다. 데이터베이스를 조회한 결과 유사한 항목 ${
-          result.value.length
-        }건이 존재합니다.${
-          result.value.length > 0
-            ? `\n\`${(result.value as string[]).join(', ')}\``
-            : ''
-        }`
-    await channel.send(data)
+    await channel.send(
+      file ? { file } : `'${name}' 이름의 이모티콘을 찾을 수 없습니다.`
+    )
   }
 }

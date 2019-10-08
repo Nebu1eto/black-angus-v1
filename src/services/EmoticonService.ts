@@ -193,27 +193,27 @@ export class EmoticonService {
     return `${name} 항목을 성공적으로 삭제했습니다.`
   }
 
-  public async fetchOrSearch (context: Message, name: string) {
-    // 1. find exactly match
+  public async fetch (context: Message, name: string) {
     const match = await EmoticonModel.findOne({ name, removed: false }).exec()
     if (match) {
       await this.insertLog(EmoticonActionType.READ, context, match)
-      return {
-        matched: true,
-        value: match.path
-      }
+      return match.path
     }
 
-    // 2. find simillar one
-    const searched = await EmoticonModel.find({
+    return undefined
+  }
+
+  public async search (context: Message, name: string) {
+    const searched = _.uniq((await EmoticonModel.find({
       name: new RegExp(name),
       removed: false
-    }).exec()
+    }).exec())).sort()
 
-    return {
-      matched: false,
-      value: _.uniq(searched.map(emoticon => emoticon.name)).sort()
-    }
+    await Promise.all(searched.map(search => {
+      return this.insertLog(EmoticonActionType.SEARCH, context, search)
+    }))
+
+    return searched
   }
 
   public async getEquivalents (name: string) {
@@ -226,7 +226,7 @@ export class EmoticonService {
   }
 
   public async getEmoticonLists () {
-    const result = await EmoticonNameModel.find().exec()
+    const result = await EmoticonNameModel.find({ removed: false }).exec()
     return _.uniq(result.map(r => r.name))
   }
 }

@@ -23,6 +23,7 @@ export class Emoticon {
 export enum EmoticonActionType {
   CREATE = 'CREATE',
   READ = 'READ',
+  SEARCH = 'SEARCH',
   UPDATE = 'UPDATE',
   DELETE = 'DELETE'
 }

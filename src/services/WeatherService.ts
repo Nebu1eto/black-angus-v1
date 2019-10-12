@@ -1,5 +1,6 @@
 import axios from 'axios'
 import cheerio from 'cheerio'
+import _ from 'lodash'
 import querystring from 'querystring'
 import { LoggingQueue } from './LoggingQueue'
 
@@ -10,7 +11,7 @@ export interface IAQIField {
 }
 
 export interface IAirRecord {
-  name: string
+  name?: string
   index: number
   time: Date
   pm25?: IAQIField
@@ -147,9 +148,11 @@ const WeatherService = {
       })
 
     return Object.assign(aqi, {
-      name: data.i18n.name.ko,
+      name: _.get(data, 'i18n.name.ko'),
       index: data.aqi,
-      time: new Date(data.time.utc.v * 1000)
+      time: new Date(
+        _.get(data, 'time.utc.v', new Date().getTime() / 1000) * 1000
+      )
     }) as IAirRecord
   },
 

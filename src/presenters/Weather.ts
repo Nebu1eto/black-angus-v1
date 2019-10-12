@@ -3,6 +3,7 @@ import WeatherService, { IAQIField } from '../services/WeatherService'
 import { BOT_CONFIG } from '../configs/IConfigurations'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
+import { RichEmbed } from 'discord.js'
 
 export const presentGetRiverTemperature: Presenter = async () => {
   const result = await WeatherService.getRiverTemp()
@@ -45,21 +46,31 @@ export const presentGetWeather: Presenter = async (map: KeyValueString) => {
     humidity: '습도'
   }
 
-  const keys = (Object.keys(fieldMap) as Array<AQIFields>)
-  const valueDescription = keys.map((elem) => {
-    if (!airResult.hasOwnProperty(elem)) {
-      return ''
-    }
-
-    const result = airResult[elem] as IAQIField
-    return `${fieldMap[elem]} 측정치: 현재 ${result.current}, 최대 ${result.max}, 최소 ${result.min}\n`
-  }).reduce((prev, curr) => prev + curr)
-
   const description = WeatherService.getAQIDescription(airResult.index)
-  return [
-    `${format(airResult.time, 'MM. dd. a hh:mm', {
-      locale: ko
-    })} 기준 ${airResult.name} 측정소의 데이터입니다.\n\n` +
-      `AQI(Air Quality Index): ${airResult.index} - ${description}\n${valueDescription}`
-  ]
+  let attach = new RichEmbed()
+    .setColor('DARK_PURPLE')
+    .setTitle('AQI Result')
+    .setDescription(
+      `${airResult.index} - ${description}`
+    )
+    .setFooter(
+      `${format(airResult.time, 'MM월 dd일 a hh시 mm분', {
+        locale: ko
+      })} 기준 ${
+        airResult.name ? airResult.name : location.formattedAddress
+      } 측정소의 데이터입니다.`
+    )
+
+  const keys = Object.keys(fieldMap) as Array<AQIFields>
+  for (const field of keys) {
+    if (!airResult.hasOwnProperty(field)) continue
+    const result = airResult[field] as IAQIField
+    attach = attach.addField(
+      fieldMap[field],
+      `현재 ${result.current}, 최대 ${result.max}, 최소 ${result.min}`,
+      true
+    )
+  }
+
+  return [attach]
 }

@@ -1,28 +1,27 @@
 import { CommandDefinition } from '../../core/CommandFactory'
-import { ICommand, CommandType } from '../../core/ICommand'
+import { CommandType } from '../../core/ICommand'
 import { Message } from 'discord.js'
 import { BOT_CONFIG } from '../../configs/IConfigurations'
-import { EmoticonService } from '../../services/EmoticonService'
+import { BasePresentedCommand, ArgumentParser, Presenter } from '../../core/BasePresentedCommand'
+import { presentFetchEmoticon } from '../../presenters/Emoticon'
 
 @CommandDefinition()
-export class Emoticon implements ICommand {
+export class Emoticon extends BasePresentedCommand {
+  flags = [BOT_CONFIG.EMOTICON_ENABLED]
+  commands: string[] = []
+
+  argsParser: ArgumentParser = ({ content }) => ({
+    name: content.substring(1, content.length)
+  })
+
+  presenter: Presenter = presentFetchEmoticon
+
   type: CommandType = CommandType.VARIABLE_COMMANDS
+
   prefix: string = '~'
 
   async action (context: Message) {
-    const { content, channel } = context
-    if (!content.startsWith(this.prefix) || !BOT_CONFIG.EMOTICON_ENABLED) {
-      return
-    }
-
-    const name = content.substring(1, content.length)
-    const file = await EmoticonService.getInstance().fetch(
-      context,
-      name
-    )
-
-    await channel.send(
-      file ? { file } : `'${name}' 이름의 이모티콘을 찾을 수 없습니다.`
-    )
+    if (!context.content.startsWith(this.prefix)) return
+    return super.action(context)
   }
 }

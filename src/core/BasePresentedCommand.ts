@@ -2,10 +2,14 @@ import _ from 'lodash'
 import { ICommand, CommandType } from './ICommand'
 import { Message, MessageOptions, RichEmbed, Attachment } from 'discord.js'
 
-export type Presenter = (map: { [key: string]: string }, context: Message) =>
-  Promise<[any, MessageOptions | RichEmbed | Attachment | undefined]>
+export type KeyValueString = { [key: string]: string }
 
-export type ArgumentParser = (context: Message) => ({ [key: string]: string })
+export type Presenter = (
+  map: KeyValueString,
+  context: Message
+) => Promise<[any] | [any, MessageOptions | RichEmbed | Attachment | undefined]>
+
+export type ArgumentParser = (context: Message) => KeyValueString
 
 export abstract class BasePresentedCommand implements ICommand {
   type: CommandType = CommandType.FEATURE_COMMANDS
@@ -20,13 +24,13 @@ export abstract class BasePresentedCommand implements ICommand {
     const { content, channel } = context
 
     // 1. return by flag
-    if (_.some(this.flags)) {
+    if (_.some(this.flags.map(flag => !flag))) {
       return
     }
 
     // 2. return by keyword
-    if (_.every(this.commands.map(command =>
-      content.indexOf(this.prefix + command) === -1
+    if (this.commands.length !== 0 && _.every(this.commands.map(
+      command => content.indexOf(this.prefix + command) === -1
     ))) {
       return
     }

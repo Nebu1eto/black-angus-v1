@@ -21,9 +21,9 @@ export class DiscordConnector {
     DiscordConnector.errorLogger.enabled = true
 
     LoggingQueue.debugSubject.pipe(
-      flatPromiseMap(async messages => {
-        messages.forEach(message => DiscordConnector.debugLogger(message))
-        if (!BOT_CONFIG.DEBUG_HISTORY_TO_CHANNEL) return
+      flatPromiseMap(async ([title, message, forced]) => {
+        DiscordConnector.debugLogger(message)
+        if (!BOT_CONFIG.DEBUG_HISTORY_TO_CHANNEL && !forced) return
 
         // find channel and send!
         const channels: TextChannel[] = this.client.channels
@@ -32,7 +32,13 @@ export class DiscordConnector {
           .find(ch => ch.name === BOT_CONFIG.DEBUG_HISTORY_OR_ERROR_CHANNEL)
 
         if (!channel) return
-        await channel.send(messages.join('\n'))
+
+        const attach = new RichEmbed()
+          .setColor('BLUE')
+          .setTitle(title)
+          .setDescription(message.substring(0, 2048))
+
+        await channel.send(attach)
       })
     ).subscribe()
     LoggingQueue.errorSubject.pipe(
@@ -68,7 +74,6 @@ export class DiscordConnector {
           .addField('Title', messages[1])
           // Be careful for Discord API's Limitation.
           .addField('Stacktrace', messages[2].substring(0, 1024))
-          .addBlankField()
           .setFooter('Alert from Black Angus Bot')
 
         await channel.send(attach)
@@ -79,7 +84,7 @@ export class DiscordConnector {
   // Initialize Discord's on Message
   async setupDiscordConnector () {
     this.client.once('ready', () => {
-      LoggingQueue.debugSubject.next([`[${
+      LoggingQueue.debugSubject.next(['봇 가동', `[${
         format(new Date(), 'yyyy. MM. dd. a hh:mm]', { locale: ko })
       } 봇 작동을 시작했습니다.`])
     })

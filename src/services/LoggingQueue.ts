@@ -9,5 +9,5 @@ export interface ILoggingError {
 
 export const LoggingQueue = {
   errorSubject: new Subject<ILoggingError>(),
-  debugSubject: new Subject<string[]>()
+  debugSubject: new Subject<[string, string] | [string, string, boolean]>()
 }

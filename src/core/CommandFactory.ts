@@ -40,7 +40,7 @@ export class CommandFactory {
     if (!matched) return
 
     // 2. Log Debug Data
-    LoggingQueue.debugSubject.next([
+    LoggingQueue.debugSubject.next(['메세지 로그',
       `[${format(new Date(), 'yyyy. MM. dd. a hh:mm:ss', { locale: ko })}] <${
         context.author.username
       }#${context.author.discriminator}> ${context.content}`

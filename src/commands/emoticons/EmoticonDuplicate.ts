@@ -1,27 +1,14 @@
+import { ArgumentParser, BasePresentedCommand, Presenter } from '../../core/BasePresentedCommand'
 import { CommandDefinition } from '../../core/CommandFactory'
-import { ICommand, CommandType } from '../../core/ICommand'
-import { Message } from 'discord.js'
-import { BOT_CONFIG } from '../../configs/IConfigurations'
-import { EmoticonService } from '../../services/EmoticonService'
+import { presentDuplicateEmoticon } from '../../presenters/Emoticon'
 
 @CommandDefinition()
-export class EmoticonDuplicate implements ICommand {
-  type: CommandType = CommandType.FEATURE_COMMANDS
-  prefix: string = '!'
-
-  async action (context: Message) {
-    const { content, channel } = context
-    if (content.indexOf('!복제') === -1 || !BOT_CONFIG.EMOTICON_ENABLED) {
-      return
-    }
-
+export class EmoticonDuplicate extends BasePresentedCommand {
+  commands: string[] = ['복제']
+  argsParser: ArgumentParser = ({ content }) => {
     const [_, name, target] = content.split(' ')
-    const result = await EmoticonService.getInstance().duplicate(
-      context,
-      name,
-      target
-    )
-
-    await channel.send(result)
+    return { name, target }
   }
+
+  presenter: Presenter = presentDuplicateEmoticon
 }

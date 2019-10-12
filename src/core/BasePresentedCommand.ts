@@ -2,12 +2,16 @@ import _ from 'lodash'
 import { ICommand, CommandType } from './ICommand'
 import { Message, MessageOptions, RichEmbed, Attachment } from 'discord.js'
 
+export type PresentedValue =
+  | [any]
+  | [any, MessageOptions | RichEmbed | Attachment | undefined]
+
 export type KeyValueString = { [key: string]: string }
 
 export type Presenter = (
   map: KeyValueString,
   context: Message
-) => Promise<[any] | [any, MessageOptions | RichEmbed | Attachment | undefined]>
+) => Promise<PresentedValue>
 
 export type ArgumentParser = (context: Message) => KeyValueString
 

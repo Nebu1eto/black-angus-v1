@@ -94,7 +94,7 @@ export class EmoticonService {
 
   public async upload (context: Message, name: string, rawUrl: string) {
     const prev = await EmoticonModel.findOne({ name, removed: false }).exec()
-    if (prev) return `${name} 항목이 이미 존재합니다.`
+    if (prev) return -1
 
     const path = await this.downloadFile(rawUrl)
     const [err, emoticon] = await tryCatch(EmoticonModel.create({
@@ -103,20 +103,20 @@ export class EmoticonService {
 
     if (err) {
       LoggingQueue.errorSubject.next({ error: err, time: new Date(), context })
-      return `${name} 항목을 추가하는 중 오류가 발생했습니다.`
+      return 0
     }
 
     await EmoticonNameModel.create({ name })
     await this.insertLog(EmoticonActionType.CREATE, context, emoticon!)
-    return `${name} 항목을 데이터베이스에 추가했습니다.`
+    return 1
   }
 
   public async duplicate (context: Message, name: string, target: string) {
     const targetEmoticon = await EmoticonModel.findOne({ name: target, removed: false }).exec()
-    if (!targetEmoticon) return `${target} 항목이 존재하지 않습니다.`
+    if (!targetEmoticon) return -2
 
     const prev = await EmoticonModel.findOne({ name, removed: false }).exec()
-    if (prev) return `${name} 항목이 이미 존재합니다.`
+    if (prev) return -1
 
     const [err, duplicated] = await tryCatch(EmoticonModel.create({
       name, path: targetEmoticon.path, equivalents: [ targetEmoticon.name ]
@@ -124,7 +124,7 @@ export class EmoticonService {
 
     if (err) {
       LoggingQueue.errorSubject.next({ error: err, time: new Date(), context })
-      return `${name} 항목을 추가하는 중 오류가 발생했습니다.`
+      return 0
     }
 
     const equivalents = await EmoticonModel.find({
@@ -140,12 +140,12 @@ export class EmoticonService {
 
     await EmoticonNameModel.create({ name })
     await this.insertLog(EmoticonActionType.CREATE, context, duplicated!)
-    return `${name} 항목을 데이터베이스에 추가했습니다.`
+    return 1
   }
 
   public async update (context: Message, name: string, newUrl: string) {
     const prev = await EmoticonModel.findOne({ name, removed: false }).exec()
-    if (!prev) return `${name} 항목이 존재하지 않습니다.`
+    if (!prev) return undefined
 
     const list = [...prev.equivalents, prev.name]
     const newPath = await this.downloadFile(newUrl)
@@ -162,12 +162,12 @@ export class EmoticonService {
       await this.insertLog(EmoticonActionType.UPDATE, context, emoticon)
     }))
 
-    return `${prev.name} 이모티콘과 동의어 ${emoticons.length - 1}개를 업데이트하였습니다.`
+    return emoticons
   }
 
   public async delete (context: Message, name: string) {
     const prev = await EmoticonModel.findOne({ name, removed: false }).exec()
-    if (!prev) return `${name} 항목이 존재하지 않습니다.`
+    if (!prev) return false
 
     prev.removed = true
     prev.updatedAt = new Date()
@@ -190,7 +190,7 @@ export class EmoticonService {
     }))
 
     await this.insertLog(EmoticonActionType.DELETE, context, prev)
-    return `${name} 항목을 성공적으로 삭제했습니다.`
+    return true
   }
 
   public async fetch (context: Message, name: string) {
@@ -218,11 +218,7 @@ export class EmoticonService {
 
   public async getEquivalents (name: string) {
     const emoticon = await EmoticonModel.findOne({ name, removed: false }).exec()
-    if (emoticon) {
-      return `${name} 항목의 동의어는 다음과 같습니다: ${emoticon.equivalents.join(', ')}`
-    }
-
-    return `${name} 항목이 존재하지 않습니다.`
+    return (!emoticon) ? undefined : emoticon.equivalents
   }
 
   public async getEmoticonLists () {

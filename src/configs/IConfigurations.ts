@@ -10,6 +10,8 @@ export interface IConfigurations {
 
   EMOTICON_ENABLED: boolean
   EMOTICON_FILE_PATH: string                // must be an absolute path
+  GOOGLE_API_KEY: string
+  WAQI_API_KEY: string
 }
 
 export const BOT_CONFIG: IConfigurations = require(

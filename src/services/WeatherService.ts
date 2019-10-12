@@ -1,5 +1,28 @@
 import axios from 'axios'
 import cheerio from 'cheerio'
+import querystring from 'querystring'
+
+export interface IAQIField {
+  current: number
+  min: number
+  max: number
+}
+
+export interface IAirRecord {
+  name: string
+  index: number
+  time: Date
+  pm25?: IAQIField
+  pm10?: IAQIField
+  o3?: IAQIField
+  no2?: IAQIField
+  so2?: IAQIField
+  co?: IAQIField
+  temp?: IAQIField
+  wind?: IAQIField
+  humidity?: IAQIField
+  pressure?: IAQIField
+}
 
 const WeatherService = {
   getRiverTemp: async () => {
@@ -36,6 +59,112 @@ const WeatherService = {
     if (candidate2.length !== 0) return [time, '양평', getTemperature(candidate2)]
     if (candidate3.length !== 0) return [time, '가평', getTemperature(candidate3)]
     return undefined
+  },
+
+  getLocation: async (address: string, key: string) => {
+    const query = querystring.stringify({
+      region: 'kr', key, address
+    })
+
+    const { data } = await axios({
+      method: 'GET',
+      url: `https://maps.googleapis.com/maps/api/geocode/json?${query}`,
+      responseType: 'json',
+      headers: {
+        'Accept-Language': 'ko-KR'
+      }
+    })
+
+    const formattedAddress = data.results[0].formatted_address
+    const lat = data.results[0].geometry.location.lat
+    const lng = data.results[0].geometry.location.lng
+    return { formattedAddress, lat, lng }
+  },
+
+  getAQIData: async (lat: number, lng: number, token: string) => {
+    const fakeUA =
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
+      'AppleWebKit/537.36 (KHTML, like Gecko) ' +
+      'Chrome/79.0.3919.0 Safari/537.36'
+
+    const resp1 = (await axios({
+      method: 'GET',
+      url: `https://api.waqi.info/feed/geo:${lat};${lng}/?token=${token}`,
+      responseType: 'json',
+      headers: {
+        'Accept-Language': 'ko-KR'
+      }
+    })).data
+
+    if (!resp1.data.idx) return undefined
+    const index = resp1.data.idx
+
+    const resp2 = (await axios({
+      method: 'GET',
+      url: `https://api.waqi.info/api/feed/@${index}/obs.en.json`,
+      responseType: 'json',
+      headers: {
+        'User-Agent': fakeUA
+      }
+    })).data
+
+    if (resp2.rxs.obs[0].status !== 'ok') return undefined
+    const data = resp2.rxs.obs[0].msg
+
+    const map = {
+      pm25: 'pm25',
+      pm10: 'pm10',
+      o3: 'o3',
+      no2: 'no2',
+      so2: 'so2',
+      co: 'co',
+      t: 'temp',
+      w: 'wind',
+      h: 'humidity',
+      p: 'pressure'
+    }
+
+    type PartialAQIField = { [str in keyof typeof map]: IAQIField }
+    const aqi: PartialAQIField = data.iaqi
+      .map((elem: any) => {
+        const key = map[elem.p as keyof typeof map]
+        const [current, min, max]: [number, number, number] = elem.v
+        return { [key]: { current, min, max } as IAQIField }
+      })
+      .reduce((acc: PartialAQIField, val: PartialAQIField) => {
+        return { ...acc, ...val }
+      })
+
+    return Object.assign(aqi, {
+      name: data.i18n.name.ko,
+      index: data.aqi,
+      time: new Date(data.time.utc.v * 1000)
+    }) as IAirRecord
+  },
+
+  getAQIDescription: (aqi: number) => {
+    if (aqi > 300) {
+      return (
+        '위험(환자군 및 민감군에게 응급 조치가 발생되거나, ' +
+        '일반인에게 유해한 영향이 유발될 수 있는 수준)'
+      )
+    } else if (aqi > 200) {
+      return (
+        '매우 나쁨(환자군 및 민감군에게 급성 노출시 심각한 영향 유발, ' +
+        '일반인도 약한 영향이 유발될 수 있는 수준)'
+      )
+    } else if (aqi > 150) {
+      return (
+        '나쁨(환자군 및 민감군[어린이, 노약자 등]에게 유해한 영향 유발, ' +
+        '일반인도 건강상 불쾌감을 경험할 수 있는 수준)'
+      )
+    } else if (aqi > 100) {
+      return '민감군 영향(환자군 및 민감군에게 유해한 영향이 유발될 수 있는 수준)'
+    } else if (aqi > 50) {
+      return '보통(환자군에게 만성 노출시 경미한 영향이 유발될 수 있는 수준)'
+    } else {
+      return '좋음(대기오염 관련 질환자군에서도 영향이 유발되지 않을 수준)'
+    }
   }
 }
 

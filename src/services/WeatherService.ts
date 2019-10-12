@@ -113,7 +113,7 @@ const WeatherService = {
 
     const resp2 = (await axios({
       method: 'GET',
-      url: `https://api.waqi.info/api/feed/@${index}/obs.en.json`,
+      url: `https://api.waqi.info/api/feed/@${index}/obs.en.json?token=${token}`,
       responseType: 'json',
       headers: {
         'User-Agent': fakeUA

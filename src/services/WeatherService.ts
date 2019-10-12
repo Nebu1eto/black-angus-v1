@@ -1,6 +1,7 @@
 import axios from 'axios'
 import cheerio from 'cheerio'
 import querystring from 'querystring'
+import { LoggingQueue } from './LoggingQueue'
 
 export interface IAQIField {
   current: number
@@ -75,9 +76,19 @@ const WeatherService = {
       }
     })
 
+    if (data.status !== 'OK' || data.results.length <= 0) {
+      return undefined
+    }
+
+    LoggingQueue.debugSubject.next([
+      'Geocoding Results',
+      JSON.stringify(data)
+    ])
+
     const formattedAddress = data.results[0].formatted_address
     const lat = data.results[0].geometry.location.lat
     const lng = data.results[0].geometry.location.lng
+
     return { formattedAddress, lat, lng }
   },
 

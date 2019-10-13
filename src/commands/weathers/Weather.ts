@@ -4,7 +4,7 @@ import { presentGetWeather } from '../../presenters/Weather'
 
 @CommandDefinition()
 export class Weather extends BasePresentedCommand {
-  commands: string[] = ['날씨', '기온', '미세먼지', 'AQI', 'aqi', '대기', '대기질']
+  commands: string[] = ['미세먼지', 'AQI', 'aqi', '대기', '대기질']
   argsParser: ArgumentParser = ({ content }) => ({
     keyword: content.substring(content.indexOf(' ') + 1)
   })

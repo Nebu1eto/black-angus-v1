@@ -1,39 +1,24 @@
-import axios from 'axios'
+import axios, { AxiosRequestConfig } from 'axios'
+import charset from 'charset'
 import cheerio from 'cheerio'
+import iconv from 'iconv-lite'
 import _ from 'lodash'
 import querystring from 'querystring'
+import { IAirRecord, IAQIField } from '../models/Weather'
 import { LoggingQueue } from './LoggingQueue'
-
-export interface IAQIField {
-  current: number
-  min: number
-  max: number
-}
-
-export interface IAirRecord {
-  name?: string
-  index: number
-  time: Date
-  pm25?: IAQIField
-  pm10?: IAQIField
-  o3?: IAQIField
-  no2?: IAQIField
-  so2?: IAQIField
-  co?: IAQIField
-  temp?: IAQIField
-  wind?: IAQIField
-  humidity?: IAQIField
-  pressure?: IAQIField
-}
 
 const WeatherService = {
   getRiverTemp: async () => {
-    const { data } = await axios({
+    const { data, headers } = await axios({
       method: 'GET',
       url: 'http://www.koreawqi.go.kr/wQSCHomeLayout_D.wq?action_type=T',
-      responseType: 'text'
-    })
-    const $ = cheerio.load(data)
+      responseType: 'arraybuffer',
+      responseEncoding: null
+    } as AxiosRequestConfig)
+
+    const encoding = charset(headers, data)
+    const body = iconv.decode(data, encoding ? encoding : 'euc-kr')
+    const $ = cheerio.load(body)
 
     const baseTimeCode = $('.data script')[0]
       .children[0].data!.split('\t')
@@ -57,10 +42,16 @@ const WeatherService = {
         .split(' ')
         .join('')
 
-    if (candidate1.length !== 0) return [time, '구리', getTemperature(candidate1)]
-    if (candidate2.length !== 0) return [time, '양평', getTemperature(candidate2)]
-    if (candidate3.length !== 0) return [time, '가평', getTemperature(candidate3)]
-    return undefined
+    if (_.every([candidate1, candidate2, candidate3],
+      candidate => candidate.length === 0)) return undefined
+    return {
+      time,
+      data: [
+        ['구리', getTemperature(candidate1)],
+        ['양평', getTemperature(candidate2)],
+        ['가평', getTemperature(candidate3)]
+      ]
+    }
   },
 
   getLocation: async (address: string, key: string) => {
@@ -83,7 +74,8 @@ const WeatherService = {
 
     LoggingQueue.debugSubject.next([
       'Geocoding Results',
-      JSON.stringify(data)
+      JSON.stringify(data),
+      true
     ])
 
     const formattedAddress = data.results[0].formatted_address

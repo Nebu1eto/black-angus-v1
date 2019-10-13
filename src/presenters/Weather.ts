@@ -1,16 +1,33 @@
 import { Presenter, KeyValueString } from '../core/BasePresentedCommand'
-import WeatherService, { IAQIField } from '../services/WeatherService'
+import WeatherService from '../services/WeatherService'
 import { BOT_CONFIG } from '../configs/IConfigurations'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { RichEmbed } from 'discord.js'
+import { IAQIField } from '../models/Weather'
 
 export const presentGetRiverTemperature: Presenter = async () => {
   const result = await WeatherService.getRiverTemp()
-  if (!result) return ['구리, 양평, 가평 측정소를 기준으로 현재 수온을 가져올 수 없었습니다.']
+  if (!result) {
+    return [
+      new RichEmbed()
+        .setColor('RED')
+        .setTitle('한강 수온')
+        .setDescription('구리, 양평, 가평 측정소를 기준으로 현재 수온을 가져올 수 없었습니다.')
+    ]
+  }
 
-  const [time, place, temperature] = result
-  return [`${place} 측정소를 기준으로 ${time} 한강의 수온은 ${temperature}도입니다.`]
+  const { time, data } = result
+  let embed = new RichEmbed()
+    .setColor('DARK_PURPLE')
+    .setTitle('한강 수온')
+    .setFooter(`${time} 기준 데이터입니다.`)
+
+  for (const [ place, temperature ] of data) {
+    embed = embed.addField(`${place} 측정소`, temperature, true)
+  }
+
+  return [ embed ]
 }
 
 export const presentGetWeather: Presenter = async (map: KeyValueString) => {

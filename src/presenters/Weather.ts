@@ -1,10 +1,11 @@
-import { Presenter, KeyValueString } from '../core/BasePresentedCommand'
-import WeatherService from '../services/WeatherService'
-import { BOT_CONFIG } from '../configs/IConfigurations'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
-import { RichEmbed } from 'discord.js'
+import { RichEmbed, Message } from 'discord.js'
+import { BOT_CONFIG } from '../configs/IConfigurations'
+import { KeyValueString, Presenter, PresentedValue } from '../core/BasePresentedCommand'
 import { IAQIField } from '../models/Weather'
+import WeatherService from '../services/WeatherService'
+import { LoggingQueue } from '../services/LoggingQueue'
 
 export const presentGetRiverTemperature: Presenter = async () => {
   const result = await WeatherService.getRiverTemp()
@@ -30,7 +31,7 @@ export const presentGetRiverTemperature: Presenter = async () => {
   return [ embed ]
 }
 
-export const presentGetWeather: Presenter = async (map: KeyValueString) => {
+export const presentGetAirQuality: Presenter = async (map: KeyValueString) => {
   const { keyword } = map
 
   const location = await WeatherService.getLocation(keyword, BOT_CONFIG.GOOGLE_API_KEY)
@@ -90,4 +91,81 @@ export const presentGetWeather: Presenter = async (map: KeyValueString) => {
   }
 
   return [attach]
+}
+
+export const presentGetWeather: Presenter = async (map: KeyValueString, context: Message) => {
+  const { keyword } = map
+  const results = await WeatherService.getWeatherFromAWS(keyword)
+  if (!results || results.length <= 0) {
+    return ['검색 결과가 없습니다. 한국 기상청 AWS가 설치된 장소인지 확인해주세요.']
+  }
+
+  // sort by score, map only record.
+  const embeds = results
+    .sort((x, y) => y[0] - x[0])
+    .map(([_, record]) => record)
+    .map(record => {
+      let emoji =
+        record.rain.is_raining === 'Rain'
+          ? record.temperature && record.temperature < 0
+            ? ':snowflake:'
+            : ':umbrella:'
+          : [21, 22, 23, 0, 1, 2, 3, 4, 5, 6].indexOf(
+              record.observedAt.getHours()
+            ) !== -1
+          ? ':crescent_moon:'
+          : ':sunny:'
+
+      let rain = ((isRaining: typeof record.rain.is_raining) => {
+        switch (isRaining) {
+          case 'Rain':
+            return `예 (15분: ${record.rain.rain15.toFixed(
+              2
+            )}mm / 일일: ${record.rain.rainday.toFixed(2)}mm)`
+          case 'Clear':
+            return '아니오'
+          case 'Unavailable':
+            return '확인 불가능'
+          case 'Unknown':
+            return '알 수 없음'
+        }
+      })(record.rain.is_raining)
+
+      let embed = new RichEmbed()
+        .setTitle('Weather Result from AWS')
+        .setColor('ORANGE')
+        .setDescription(`[${emoji}] ${record.name} / ${record.address}`)
+        .setFooter(
+          `${format(record.observedAt, 'yyyy년 MM월 dd일 a hh시 mm분', {
+            locale: ko
+          })} 기준 측정 자료입니다.`
+        )
+
+      embed = embed.addField('강수', rain)
+      if (record.temperature) embed = embed.addField('기온', `${record.temperature.toFixed(1)}℃`, true)
+      if (record.humidity) embed = embed.addField('습도', `${record.humidity}%`, true)
+      if (record.atmospheric) embed = embed.addField('기압', `${record.atmospheric}hPa`, true)
+      if (['No', 'Unavailable'].indexOf(record.wind1.direction_text) === -1) {
+        embed = embed.addField(
+          '풍량',
+          `${record.wind1.direction_text
+            .split('N')
+            .join('북')
+            .split('S')
+            .join('남')
+            .split('W')
+            .join('서')
+            .split('E')
+            .join('동')} ${record.wind1.velocity.toFixed(1)}m/s`
+        )
+      }
+
+      return embed
+    })
+
+  for (const embed of embeds) {
+    await context.channel.send(embed)
+  }
+
+  return []
 }

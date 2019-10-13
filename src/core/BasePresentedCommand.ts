@@ -3,15 +3,15 @@ import { ICommand, CommandType } from './ICommand'
 import { Message, MessageOptions, RichEmbed, Attachment } from 'discord.js'
 
 export type PresentedValue =
-  | [any]
-  | [any, MessageOptions | RichEmbed | Attachment | undefined]
+  [any, MessageOptions | RichEmbed | Attachment | undefined]
+  | any[]
 
 export type KeyValueString = { [key: string]: string }
 
 export type Presenter = (
   map: KeyValueString,
   context: Message
-) => Promise<PresentedValue>
+) => Promise<PresentedValue | undefined>
 
 export type ArgumentParser = (context: Message) => KeyValueString
 
@@ -41,6 +41,7 @@ export abstract class BasePresentedCommand implements ICommand {
 
     // 3. get arguments with parser and return presented value
     const args = this.argsParser(context)
-    await channel.send(...(await this.presenter(args, context)))
+    const presented = await this.presenter(args, context)
+    if (presented && presented.length > 0) await channel.send(...presented)
   }
 }

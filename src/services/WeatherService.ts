@@ -4,11 +4,12 @@ import cheerio from 'cheerio'
 import iconv from 'iconv-lite'
 import _ from 'lodash'
 import querystring from 'querystring'
-import { IAirRecord, IAQIField } from '../models/Weather'
+import { IAirRecord, IAQIField, RawAWSResponse, WeatherRecord, WeatherRecordModel } from '../models/Weather'
+import { getFuzzyKoreanPartialRatio } from '../utils/fuzzyKorean'
 import { LoggingQueue } from './LoggingQueue'
 
-const WeatherService = {
-  getRiverTemp: async () => {
+export default class WeatherService {
+  static async getRiverTemp () {
     const { data, headers } = await axios({
       method: 'GET',
       url: 'http://www.koreawqi.go.kr/wQSCHomeLayout_D.wq?action_type=T',
@@ -52,9 +53,9 @@ const WeatherService = {
         ['가평', getTemperature(candidate3)]
       ]
     }
-  },
+  }
 
-  getLocation: async (address: string, key: string) => {
+  static async getLocation (address: string, key: string) {
     const query = querystring.stringify({
       region: 'kr', key, address
     })
@@ -83,9 +84,9 @@ const WeatherService = {
     const lng = data.results[0].geometry.location.lng
 
     return { formattedAddress, lat, lng }
-  },
+  }
 
-  getAQIData: async (lat: number, lng: number, token: string) => {
+  static async getAQIData (lat: number, lng: number, token: string) {
     const fakeUA =
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
       'AppleWebKit/537.36 (KHTML, like Gecko) ' +
@@ -146,9 +147,9 @@ const WeatherService = {
         _.get(data, 'time.utc.v', new Date().getTime() / 1000) * 1000
       )
     }) as IAirRecord
-  },
+  }
 
-  getAQIDescription: (aqi: number) => {
+  static getAQIDescription (aqi: number) {
     if (aqi > 300) {
       return (
         '위험(환자군 및 민감군에게 응급 조치가 발생되거나, ' +
@@ -172,6 +173,74 @@ const WeatherService = {
       return '좋음(대기오염 관련 질환자군에서도 영향이 유발되지 않을 수준)'
     }
   }
-}
 
-export default WeatherService
+  private static async getAWSData () {
+    // 0. fetch cached in database
+    const cached = await WeatherRecordModel.find({}).exec()
+    if (cached.length > 0) {
+      LoggingQueue.debugSubject.next([
+        'AWS Crawling',
+        'Use Cached Data from MongoDB',
+        true
+      ])
+      return cached
+    }
+
+    try {
+      // 1. fetch api
+      const rawResp: RawAWSResponse = (await axios({
+        method: 'GET',
+        url: `https://item4.net/api/weather/`,
+        responseType: 'json'
+      })).data
+
+      // 2. transform primitive response to models
+      const inserted = await WeatherRecordModel.insertMany(
+        rawResp.records.map(record => {
+          return {
+            observedAt: rawResp.observed_at,
+            name: record.name,
+            height: record.height,
+            rain: record.rain,
+            temperature: record.temperature,
+            wind1: record.wind1,
+            wind10: record.wind10,
+            humidity: record.humidity,
+            atmospheric: record.atmospheric,
+            address: record.address
+          }
+        })
+      )
+
+      LoggingQueue.debugSubject.next([
+        'AWS Crawling',
+        'Cache Revalidation Completed.',
+        true
+      ])
+
+      return inserted
+    } catch (_) {
+      return undefined
+    }
+  }
+
+  static async getWeatherFromAWS (location: string) {
+    const records = await this.getAWSData()
+    if (!records) return undefined
+
+    const results: Array<[number, WeatherRecord]> = []
+    for (const record of records) {
+      if (record.name === location) {
+        results.push([1000, record])
+        continue
+      }
+
+      const nameRatio = getFuzzyKoreanPartialRatio(record.name, location)
+      const addressScore = (record.address.indexOf(location) !== -1) ? 50 : 0
+      const score = nameRatio + addressScore
+      if (score >= 90) results.push([score, record])
+    }
+
+    return results
+  }
+}

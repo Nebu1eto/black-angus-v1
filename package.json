@@ -22,6 +22,7 @@
     "@types/lodash": "^4.14.144",
     "@types/mongoose": "^5.5.23",
     "@types/node": "^10.15.3",
+    "@types/sharp": "^0.23.0",
     "ava": "^2.4.0",
     "rxjs-tslint": "^0.1.7",
     "ts-node": "^8.4.1",
@@ -32,6 +33,7 @@
   "dependencies": {
     "@discordjs/uws": "^11.149.1",
     "@typegoose/typegoose": "^6.0.4",
+    "apng2gif-bin": "^1.7.1",
     "axios": "^0.19.0",
     "bluebird": "^3.7.1",
     "bufferutil": "^4.0.1",
@@ -46,6 +48,7 @@
     "lodash": "^4.17.15",
     "mongoose": "^5.7.7",
     "rxjs": "^6.5.3",
-    "rxjs-compat": "^6.5.3"
+    "rxjs-compat": "^6.5.3",
+    "sharp": "^0.23.1"
   }
 }

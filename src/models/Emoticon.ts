@@ -1,4 +1,4 @@
-import { prop, getModelForClass, Ref, arrayProp } from '@typegoose/typegoose'
+import { prop, getModelForClass, Ref } from '@typegoose/typegoose'
 
 export class Emoticon {
   @prop({ required: true, minlength: 1, maxlength: 10 })

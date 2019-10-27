@@ -12,6 +12,10 @@ export interface IConfigurations {
 
   EMOTICON_ENABLED: boolean
   EMOTICON_FILE_PATH: string                // must be an absolute path
+
+  LINECON_ENABLED: boolean
+  LINECON_FILE_PATH: string
+
   GOOGLE_API_KEY: string
   WAQI_API_KEY: string
 }

@@ -1,27 +1,66 @@
 // Thanks to Siwon Kim, for Proof of Concept.
 import cheerio from 'cheerio'
 import fs from 'fs'
-import sharp from 'sharp'
+import got from 'got'
 import path from 'path'
+import sharp from 'sharp'
+import { URLSearchParams } from 'url'
 import util from 'util'
 import { BOT_CONFIG } from '../configs/IConfigurations'
-import { LineconCategoryModel, LineconModel } from '../models/Linecon'
-import { isAnimatedPng } from '../utils/isAnimatedPng'
+import { Linecon, LineconCategory, LineconCategoryModel, LineconModel, SearchResult } from '../models/Linecon'
 import apng2gif from '../utils/apng2gif'
-import got from 'got'
+import { isAnimatedPng } from '../utils/isAnimatedPng'
 
 const appendFile = util.promisify(fs.appendFile)
 const mkdir = util.promisify(fs.mkdir)
+const fakeUA =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
+  'AppleWebKit/537.36 (KHTML, like Gecko) ' +
+  'Chrome/79.0.3919.0 Safari/537.36'
 
 export default class LineconService {
-  static async fetchEmoticon (id: number, name: string) {
+  static async searchEmoticons (keyword: string, page: number = 1, limit: number = 30): Promise<SearchResult[]> {
+    // download and load with parser
+    const { body } = await got.get(`https://store.line.me/api/search/sticker`, {
+      query: new URLSearchParams([
+        ['query', keyword],
+        ['offset', `${limit * (page - 1)}`],
+        ['limit', `${limit}`],
+        ['type', 'ALL'],
+        ['includeFacets', 'true']
+      ]),
+      headers: {
+        'User-Agent': fakeUA,
+        'X-Requested-With': 'XMLHttpRequest',
+        Referrer: `https://store.line.me/search/sticker/en?q=${encodeURIComponent(
+          keyword
+        )}`
+      },
+      json: true
+    })
+    console.log(body)
+
+    return (body.items as any[]).map(item => {
+      return {
+        title: item.title as string,
+        thumbnail: item.listIcon.src as string
+      }
+    })
+  }
+
+  static async initializeEmoticons (id: number, name: string) {
     // if already exists return model.
     const prev = await LineconCategoryModel.findOne({ originId: id }).exec()
     if (prev) return prev
 
     // download and load with parser
     const { body } = await got.get(
-      `https://line.me/S/sticker/${id}/?lang=ja&ref=gnsh_stickerDetail`
+      `https://line.me/S/sticker/${id}/?lang=en&ref=gnsh_stickerDetail`,
+      {
+        headers: {
+          'User-Agent': fakeUA
+        }
+      }
     )
     const $ = cheerio.load(body)
 
@@ -75,12 +114,37 @@ export default class LineconService {
       return LineconModel.create({
         category,
         animated,
-        name: `${index}`,
+        name: `${name}_${index}`,
         fullPath: animated ? gifFilePath : pngFilePath,
         thumbnailPath
       })
     }))
 
     return category
+  }
+
+  getCategories () {
+    return LineconCategoryModel.find().exec()
+  }
+
+  async fetchEmoticons (name: string): Promise<[LineconCategory, Linecon[]] | undefined> {
+    const category = await LineconCategoryModel.findOne({ name }).exec()
+    if (!category) return undefined
+
+    const linecons = await LineconModel.find({ _id: category._id }).exec()
+    return [ category, linecons ]
+  }
+
+  fetchEmoticon (keyword: string) {
+    return LineconModel.findOne({ name: keyword }).exec()
+  }
+
+  async renameEmoticon (origin: string, newName: string) {
+    const prev = await LineconModel.findOne({ name: origin }).exec()
+    if (!prev) return undefined
+
+    prev.name = newName
+    await prev.save()
+    return prev
   }
 }

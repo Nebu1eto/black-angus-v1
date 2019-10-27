@@ -1,5 +1,10 @@
 import { prop, getModelForClass, Ref } from '@typegoose/typegoose'
 
+export interface SearchResult {
+  title: string
+  thumbnail: string
+}
+
 export class LineconCategory {
   @prop({ required: true })
   originId!: number

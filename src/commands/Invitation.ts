@@ -6,11 +6,11 @@ import { BOT_CONFIG } from '../configs/IConfigurations'
 @CommandDefinition()
 export class Invitation implements ICommand {
   type: CommandType = CommandType.ADMIN_COMMANDS
-  prefix: string = '!'
+  prefix: string = BOT_CONFIG.DEBUG_EXECUTION ? '.' : '!'
 
   async action (context: Message) {
     const { content, channel } = context
-    if (content.indexOf('!초대') === -1) {
+    if (content.indexOf(this.prefix + '초대') === -1) {
       return
     }
 

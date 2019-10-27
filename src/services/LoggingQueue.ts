@@ -7,7 +7,14 @@ export interface ILoggingError {
   context?: Message
 }
 
+export interface ILoggingDebug {
+  title: string,
+  message: string,
+  context?: Message,
+  forced?: boolean
+}
+
 export const LoggingQueue = {
   errorSubject: new Subject<ILoggingError>(),
-  debugSubject: new Subject<[string, string] | [string, string, boolean]>()
+  debugSubject: new Subject<ILoggingDebug>()
 }

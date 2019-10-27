@@ -7,6 +7,8 @@ import querystring from 'querystring'
 import { IAirRecord, IAQIField, RawAWSResponse, WeatherRecord, WeatherRecordModel } from '../models/Weather'
 import { getFuzzyKoreanPartialRatio } from '../utils/fuzzyKorean'
 import { LoggingQueue } from './LoggingQueue'
+import { Message } from 'discord.js'
+import { BOT_CONFIG } from '../configs/IConfigurations'
 
 export default class WeatherService {
   static async getRiverTemp () {
@@ -55,7 +57,7 @@ export default class WeatherService {
     }
   }
 
-  static async getLocation (address: string, key: string) {
+  static async getLocation (address: string, key: string, context: Message) {
     const query = querystring.stringify({
       region: 'kr', key, address
     })
@@ -73,11 +75,12 @@ export default class WeatherService {
       return undefined
     }
 
-    LoggingQueue.debugSubject.next([
-      'Geocoding Results',
-      JSON.stringify(data),
-      true
-    ])
+    LoggingQueue.debugSubject.next({
+      title: 'Geocoding Results',
+      message: JSON.stringify(data),
+      context,
+      forced: true
+    })
 
     const formattedAddress = data.results[0].formatted_address
     const lat = data.results[0].geometry.location.lat
@@ -174,15 +177,16 @@ export default class WeatherService {
     }
   }
 
-  private static async getAWSData () {
+  private static async getAWSData (context: Message) {
     // 0. fetch cached in database
     const cached = await WeatherRecordModel.find({}).exec()
     if (cached.length > 0) {
-      LoggingQueue.debugSubject.next([
-        'AWS Crawling',
-        'Use Cached Data from MongoDB',
-        true
-      ])
+      LoggingQueue.debugSubject.next({
+        title: 'AWS Crawling',
+        message: 'Use Cached Data from MongoDB',
+        forced: true,
+        context
+      })
       return cached
     }
 
@@ -212,11 +216,12 @@ export default class WeatherService {
         })
       )
 
-      LoggingQueue.debugSubject.next([
-        'AWS Crawling',
-        'Cache Revalidation Completed.',
-        true
-      ])
+      LoggingQueue.debugSubject.next({
+        title: 'AWS Crawling',
+        message: 'Cache Revalidation Completed.',
+        forced: BOT_CONFIG.DEBUG_EXECUTION,
+        context
+      })
 
       return inserted
     } catch (_) {
@@ -224,8 +229,8 @@ export default class WeatherService {
     }
   }
 
-  static async getWeatherFromAWS (location: string) {
-    const records = await this.getAWSData()
+  static async getWeatherFromAWS (location: string, context: Message) {
+    const records = await this.getAWSData(context)
     if (!records) return undefined
 
     const results: Array<[number, WeatherRecord]> = []

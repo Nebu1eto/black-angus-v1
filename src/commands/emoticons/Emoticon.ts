@@ -18,7 +18,7 @@ export class Emoticon extends BasePresentedCommand {
 
   type: CommandType = CommandType.VARIABLE_COMMANDS
 
-  prefix: string = '~'
+  prefix: string = BOT_CONFIG.DEBUG_EXECUTION ? '\\' : '~'
 
   async action (context: Message) {
     if (!context.content.startsWith(this.prefix)) return

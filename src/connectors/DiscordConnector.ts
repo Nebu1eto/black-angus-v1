@@ -21,26 +21,34 @@ export class DiscordConnector {
     DiscordConnector.errorLogger.enabled = true
 
     LoggingQueue.debugSubject.pipe(
-      flatPromiseMap(async ([title, message, forced]) => {
+      flatPromiseMap(async ({ title, message, context, forced }) => {
         DiscordConnector.debugLogger(message)
         if (!BOT_CONFIG.DEBUG_HISTORY_TO_CHANNEL && !forced) return
 
         // find channel and send!
         const channels: TextChannel[] = this.client.channels
           .filter(ch => ch.type === 'text').array() as TextChannel[]
-        const channel: TextChannel | undefined = channels
-          .find(ch => ch.name === BOT_CONFIG.DEBUG_HISTORY_OR_ERROR_CHANNEL)
-
-        if (!channel) return
-
         const attach = new RichEmbed()
           .setColor('BLUE')
           .setTitle(title)
           .setDescription(message.substring(0, 2048))
 
-        await channel.send(attach)
+        if (context) {
+          const channel: TextChannel | undefined = channels.find(
+            ch =>
+              ch.name === BOT_CONFIG.DEBUG_HISTORY_OR_ERROR_CHANNEL &&
+              ch.guild === context.guild
+          )
+
+          if (!channel) return
+          await channel.send(attach)
+        } else {
+          await Promise.all(channels.map(channel => channel.send(attach)))
+        }
+
       })
     ).subscribe()
+
     LoggingQueue.errorSubject.pipe(
       flatPromiseMap(async ({ time, error, context }) => {
         const timeStr = `[${format(time, 'yyyy. MM. dd. a hh:mm:ss', {
@@ -62,11 +70,6 @@ export class DiscordConnector {
         // find channel and send!
         const channels: TextChannel[] = this.client.channels
           .filterArray(ch => ch.type === 'text') as TextChannel[]
-        const channel: TextChannel | undefined = channels
-          .find(ch => ch.name === BOT_CONFIG.DEBUG_HISTORY_OR_ERROR_CHANNEL)
-
-        if (!channel) return
-
         const attach = new RichEmbed()
           .setColor('#ff4444')
           .setTitle('Runtime Error')
@@ -76,7 +79,18 @@ export class DiscordConnector {
           .addField('Stacktrace', messages[2].substring(0, 1024))
           .setFooter('Alert from Black Angus Bot')
 
-        await channel.send(attach)
+        if (context) {
+          const channel: TextChannel | undefined = channels.find(
+            ch =>
+              ch.name === BOT_CONFIG.DEBUG_HISTORY_OR_ERROR_CHANNEL &&
+              ch.guild === context.guild
+          )
+
+          if (!channel) return
+          await channel.send(attach)
+        } else {
+          await Promise.all(channels.map(channel => channel.send(attach)))
+        }
       })
     ).subscribe()
   }
@@ -84,9 +98,12 @@ export class DiscordConnector {
   // Initialize Discord's on Message
   async setupDiscordConnector () {
     this.client.once('ready', () => {
-      LoggingQueue.debugSubject.next(['봇 가동', `[${
-        format(new Date(), 'yyyy. MM. dd. a hh:mm]', { locale: ko })
-      } 봇 작동을 시작했습니다.`])
+      LoggingQueue.debugSubject.next({
+        title: '봇 가동',
+        message: `[${
+          format(new Date(), 'yyyy. MM. dd. a hh:mm]', { locale: ko })
+        } 봇 작동을 시작했습니다.`
+      })
     })
 
     this.client.on('message', async (message) => {

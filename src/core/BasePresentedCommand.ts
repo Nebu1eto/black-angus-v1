@@ -1,9 +1,10 @@
 import _ from 'lodash'
 import { ICommand, CommandType } from './ICommand'
 import { Message, MessageOptions, RichEmbed, Attachment } from 'discord.js'
+import { BOT_CONFIG } from '../configs/IConfigurations'
 
 export type PresentedValue =
-  [any, MessageOptions | RichEmbed | Attachment | undefined]
+  | [any, MessageOptions | RichEmbed | Attachment | undefined]
   | any[]
 
 export type KeyValueString = { [key: string]: string }
@@ -17,7 +18,7 @@ export type ArgumentParser = (context: Message) => KeyValueString
 
 export abstract class BasePresentedCommand implements ICommand {
   type: CommandType = CommandType.FEATURE_COMMANDS
-  prefix: string = '!'
+  prefix: string = BOT_CONFIG.DEBUG_EXECUTION ? '.' : '!'
 
   flags: boolean[] = []
   abstract commands: string[]

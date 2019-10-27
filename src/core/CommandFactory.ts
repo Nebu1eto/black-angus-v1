@@ -40,11 +40,13 @@ export class CommandFactory {
     if (!matched) return
 
     // 2. Log Debug Data
-    LoggingQueue.debugSubject.next(['메세지 로그',
-      `[${format(new Date(), 'yyyy. MM. dd. a hh:mm:ss', { locale: ko })}] <${
+    LoggingQueue.debugSubject.next({
+      title: '메세지 로그',
+      message: `[${format(new Date(), 'yyyy. MM. dd. a hh:mm:ss', { locale: ko })}] <${
         context.author.username
-      }#${context.author.discriminator}> ${context.content}`
-    ])
+      }#${context.author.discriminator}> ${context.content}`,
+      context
+    })
 
     // 3. Run Commands
     const types = Object.values(CommandType)

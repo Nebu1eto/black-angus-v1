@@ -1,23 +1,23 @@
-import axios, { AxiosRequestConfig } from 'axios'
 import charset from 'charset'
 import cheerio from 'cheerio'
+import { Message } from 'discord.js'
+import got from 'got'
 import iconv from 'iconv-lite'
 import _ from 'lodash'
 import querystring from 'querystring'
+import { BOT_CONFIG } from '../configs/IConfigurations'
 import { IAirRecord, IAQIField, RawAWSResponse, WeatherRecord, WeatherRecordModel } from '../models/Weather'
 import { getFuzzyKoreanPartialRatio } from '../utils/fuzzyKorean'
 import { LoggingQueue } from './LoggingQueue'
-import { Message } from 'discord.js'
-import { BOT_CONFIG } from '../configs/IConfigurations'
 
 export default class WeatherService {
   static async getRiverTemp () {
-    const { data, headers } = await axios({
-      method: 'GET',
-      url: 'http://www.koreawqi.go.kr/wQSCHomeLayout_D.wq?action_type=T',
-      responseType: 'arraybuffer',
-      responseEncoding: null
-    } as AxiosRequestConfig)
+    const { body: data, headers } = await got.get(
+      'http://www.koreawqi.go.kr/wQSCHomeLayout_D.wq?action_type=T',
+      {
+        encoding: null
+      }
+    )
 
     const encoding = charset(headers, data)
     const body = iconv.decode(data, encoding ? encoding : 'euc-kr')
@@ -62,29 +62,30 @@ export default class WeatherService {
       region: 'kr', key, address
     })
 
-    const { data } = await axios({
-      method: 'GET',
-      url: `https://maps.googleapis.com/maps/api/geocode/json?${query}`,
-      responseType: 'json',
-      headers: {
-        'Accept-Language': 'ko-KR'
+    const { body } = await got.get(
+      `https://maps.googleapis.com/maps/api/geocode/json?${query}`,
+      {
+        json: true,
+        headers: {
+          'Accept-Language': 'ko-KR'
+        }
       }
-    })
+    )
 
-    if (data.status !== 'OK' || data.results.length <= 0) {
+    if (body.status !== 'OK' || body.results.length <= 0) {
       return undefined
     }
 
     LoggingQueue.debugSubject.next({
       title: 'Geocoding Results',
-      message: JSON.stringify(data),
+      message: JSON.stringify(body),
       context,
       forced: true
     })
 
-    const formattedAddress = data.results[0].formatted_address
-    const lat = data.results[0].geometry.location.lat
-    const lng = data.results[0].geometry.location.lng
+    const formattedAddress = body.results[0].formatted_address
+    const lat = body.results[0].geometry.location.lat
+    const lng = body.results[0].geometry.location.lng
 
     return { formattedAddress, lat, lng }
   }
@@ -95,26 +96,28 @@ export default class WeatherService {
       'AppleWebKit/537.36 (KHTML, like Gecko) ' +
       'Chrome/79.0.3919.0 Safari/537.36'
 
-    const resp1 = (await axios({
-      method: 'GET',
-      url: `https://api.waqi.info/feed/geo:${lat};${lng}/?token=${token}`,
-      responseType: 'json',
-      headers: {
-        'Accept-Language': 'ko-KR'
+    const resp1 = (await got.get(
+      `https://api.waqi.info/feed/geo:${lat};${lng}/?token=${token}`,
+      {
+        json: true,
+        headers: {
+          'Accept-Language': 'ko-KR'
+        }
       }
-    })).data
+    )).body
 
     if (!resp1.data.idx) return undefined
     const index = resp1.data.idx
 
-    const resp2 = (await axios({
-      method: 'GET',
-      url: `https://api.waqi.info/api/feed/@${index}/obs.en.json?token=${token}`,
-      responseType: 'json',
-      headers: {
-        'User-Agent': fakeUA
+    const resp2 = (await got.get(
+      `https://api.waqi.info/api/feed/@${index}/obs.en.json?token=${token}`,
+      {
+        json: true,
+        headers: {
+          'User-Agent': fakeUA
+        }
       }
-    })).data
+    )).body
 
     if (resp2.rxs.obs[0].status !== 'ok') return undefined
     const data = resp2.rxs.obs[0].msg
@@ -192,11 +195,12 @@ export default class WeatherService {
 
     try {
       // 1. fetch api
-      const rawResp: RawAWSResponse = (await axios({
-        method: 'GET',
-        url: `https://item4.net/api/weather/`,
-        responseType: 'json'
-      })).data
+      const rawResp: RawAWSResponse = (await got.get(
+        'https://item4.net/api/weather/',
+        {
+          json: true
+        }
+      )).body
 
       // 2. transform primitive response to models
       const inserted = await WeatherRecordModel.insertMany(

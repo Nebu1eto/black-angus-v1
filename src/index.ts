@@ -1,5 +1,5 @@
 import { DiscordConnector } from './connectors/DiscordConnector'
-import { Promise as Bluebird } from 'Bluebird'
+import { Promise as Bluebird } from 'bluebird'
 import { initializeCommands } from './core/initializeCommands'
 import { connectDatabase } from './utils/connectDatabase'
 import { BOT_CONFIG } from './configs/IConfigurations'
@@ -27,9 +27,11 @@ class BlackAngusBot {
   const botApp = new BlackAngusBot()
   await botApp.start()
 })().catch((err) => {
-  // process manager will resurrect it. ;)
   console.error(err)
   LoggingQueue.errorSubject.next({
     error: err, time: new Date()
   })
+
+  // process manager will resurrect it. ;)
+  process.exit(1)
 })

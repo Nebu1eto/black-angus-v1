@@ -1,5 +1,4 @@
 // Thanks to Siwon Kim, for Proof of Concept.
-import axios from 'axios'
 import cheerio from 'cheerio'
 import fs from 'fs'
 import sharp from 'sharp'
@@ -9,6 +8,7 @@ import { BOT_CONFIG } from '../configs/IConfigurations'
 import { LineconCategoryModel, LineconModel } from '../models/Linecon'
 import { isAnimatedPng } from '../utils/isAnimatedPng'
 import apng2gif from '../utils/apng2gif'
+import got from 'got'
 
 const appendFile = util.promisify(fs.appendFile)
 const mkdir = util.promisify(fs.mkdir)
@@ -20,12 +20,10 @@ export default class LineconService {
     if (prev) return prev
 
     // download and load with parser
-    const { data } = await axios({
-      method: 'GET',
-      url: `https://line.me/S/sticker/${id}/?lang=ja&ref=gnsh_stickerDetail`,
-      responseType: 'text'
-    })
-    const $ = cheerio.load(data)
+    const { body } = await got.get(
+      `https://line.me/S/sticker/${id}/?lang=ja&ref=gnsh_stickerDetail`
+    )
+    const $ = cheerio.load(body)
 
     // get title and urls
     const title = $('p.mdCMN38Item01Ttl').text()
@@ -52,20 +50,19 @@ export default class LineconService {
 
     await Promise.all(emoticonUrls.map(async (url, index) => {
       // 1. download original file
-      const { data } = await axios({
-        method: 'GET',
-        url,
-        responseType: 'arraybuffer'
+      const { body } = await got.get(url, {
+        encoding: null,
+        retry: 3
       })
 
       const pngFilePath = path.join(folderPath, `i_${index}.png`)
       const thumbnailPath = path.join(folderPath, `t_${index}.png`)
       const gifFilePath = path.join(folderPath, `i_${index}.gif`)
-      await appendFile(pngFilePath, data)
+      await appendFile(pngFilePath, body)
 
       // 2. check if it is animated png, convert it
       let animated = false
-      if (isAnimatedPng(data)) {
+      if (isAnimatedPng(body)) {
         animated = true
         await apng2gif(pngFilePath, gifFilePath, {})
       }

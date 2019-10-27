@@ -1,8 +1,10 @@
 import { DocumentType } from '@typegoose/typegoose'
-import axios from 'axios'
 import crypto from 'crypto'
+import { format } from 'date-fns'
+import { ko } from 'date-fns/locale'
 import { Message } from 'discord.js'
 import fs from 'fs'
+import got from 'got'
 import _ from 'lodash'
 import path from 'path'
 import { URL } from 'url'
@@ -11,8 +13,6 @@ import { BOT_CONFIG } from '../configs/IConfigurations'
 import { Emoticon, EmoticonActionType, EmoticonLogModel, EmoticonModel, EmoticonNameModel } from '../models/Emoticon'
 import { tryCatch } from '../utils/tryCatch'
 import { LoggingQueue } from './LoggingQueue'
-import { ko } from 'date-fns/locale'
-import { format } from 'date-fns'
 
 const writeFile = util.promisify(fs.writeFile)
 const mkdir = util.promisify(fs.mkdir)
@@ -52,11 +52,12 @@ export class EmoticonService {
 
   private async downloadFile (rawUrl: string) {
     const url = new URL(rawUrl)
-    const { data } = await axios({
-      method: 'get',
-      url: rawUrl,
-      responseType: 'arraybuffer'
-    })
+    const { body } = await(
+      got.get(rawUrl, {
+        retry: 3,
+        encoding: null
+      })
+    )
 
     const paths = url.pathname.split('/')
     const extension = (() => {
@@ -65,16 +66,15 @@ export class EmoticonService {
       return preservedExts.indexOf(extname) === -1 ? '.jpg' : extname
     })()
 
-    const file = Buffer.from(data, 'binary')
     const fileName = path.join(
       BOT_CONFIG.EMOTICON_FILE_PATH,
-      `${this.getFileName(file)}${extension}`
+      `${this.getFileName(body)}${extension}`
     )
 
     // create file if not exists. ;)
     const [err] = await tryCatch(stat(fileName))
     if (err) {
-      await writeFile(fileName, file)
+      await writeFile(fileName, body)
     }
 
     return fileName

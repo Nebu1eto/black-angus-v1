@@ -2,10 +2,9 @@ import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { RichEmbed, Message } from 'discord.js'
 import { BOT_CONFIG } from '../configs/IConfigurations'
-import { KeyValueString, Presenter, PresentedValue } from '../core/BasePresentedCommand'
+import { KeyValueString, Presenter } from '../core/BasePresentedCommand'
 import { IAQIField } from '../models/Weather'
 import WeatherService from '../services/WeatherService'
-import { LoggingQueue } from '../services/LoggingQueue'
 
 export const presentGetRiverTemperature: Presenter = async () => {
   const result = await WeatherService.getRiverTemp()
@@ -31,10 +30,10 @@ export const presentGetRiverTemperature: Presenter = async () => {
   return [ embed ]
 }
 
-export const presentGetAirQuality: Presenter = async (map: KeyValueString) => {
+export const presentGetAirQuality: Presenter = async (map: KeyValueString, context: Message) => {
   const { keyword } = map
 
-  const location = await WeatherService.getLocation(keyword, BOT_CONFIG.GOOGLE_API_KEY)
+  const location = await WeatherService.getLocation(keyword, BOT_CONFIG.GOOGLE_API_KEY, context)
   if (!location) {
     return [`구글에서 \`${keyword}\`이라는 위치를 찾을 수 없었습니다.`]
   }
@@ -95,7 +94,7 @@ export const presentGetAirQuality: Presenter = async (map: KeyValueString) => {
 
 export const presentGetWeather: Presenter = async (map: KeyValueString, context: Message) => {
   const { keyword } = map
-  const results = await WeatherService.getWeatherFromAWS(keyword)
+  const results = await WeatherService.getWeatherFromAWS(keyword, context)
   if (!results || results.length <= 0) {
     return ['검색 결과가 없습니다. 한국 기상청 AWS가 설치된 장소인지 확인해주세요.']
   }

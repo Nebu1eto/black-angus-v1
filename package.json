@@ -9,7 +9,8 @@
     "test": "ava",
     "posttest": "",
     "build": "",
-    "lint": "tslint --fix --project tsconfig.json"
+    "lint": "tslint --fix --project tsconfig.json",
+    "compile": "tsc"
   },
   "author": "Haze Lee <hazelee@realignist.me>",
   "license": "MIT",

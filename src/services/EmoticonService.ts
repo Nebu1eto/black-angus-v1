@@ -18,20 +18,8 @@ const writeFile = util.promisify(fs.writeFile)
 const mkdir = util.promisify(fs.mkdir)
 const stat = util.promisify(fs.stat)
 
-export class EmoticonService {
-  private static instance: EmoticonService
-
-  private constructor () {}
-
-  static getInstance (): EmoticonService {
-    if (!EmoticonService.instance) {
-      EmoticonService.instance = new EmoticonService()
-    }
-
-    return EmoticonService.instance
-  }
-
-  public async initialize () {
+export default class EmoticonService {
+  public static async initialize () {
     const [err, result] = await tryCatch(stat(BOT_CONFIG.EMOTICON_FILE_PATH))
     if (err) {
       await mkdir(BOT_CONFIG.EMOTICON_FILE_PATH)
@@ -43,14 +31,14 @@ export class EmoticonService {
     }
   }
 
-  private getFileName (file: Buffer) {
+  private static getFileName (file: Buffer) {
     return crypto
       .createHash('sha1')
       .update(file)
       .digest('hex')
   }
 
-  private async downloadFile (rawUrl: string) {
+  private static async downloadFile (rawUrl: string) {
     const url = new URL(rawUrl)
     const { body } = await(
       got.get(rawUrl, {
@@ -80,7 +68,7 @@ export class EmoticonService {
     return fileName
   }
 
-  private insertLog (type: EmoticonActionType, context: Message, emoticon: DocumentType<Emoticon>) {
+  private static insertLog (type: EmoticonActionType, context: Message, emoticon: DocumentType<Emoticon>) {
     return EmoticonLogModel.create({
       type,
       context: `[${format(new Date(), 'yyyy. MM. dd. a hh:mm:ss', {
@@ -92,7 +80,7 @@ export class EmoticonService {
     })
   }
 
-  public async upload (context: Message, name: string, rawUrl: string) {
+  public static async upload (context: Message, name: string, rawUrl: string) {
     const prev = await EmoticonModel.findOne({ name, removed: false }).exec()
     if (prev) return -1
 
@@ -111,7 +99,7 @@ export class EmoticonService {
     return 1
   }
 
-  public async duplicate (context: Message, name: string, target: string) {
+  public static async duplicate (context: Message, name: string, target: string) {
     const targetEmoticon = await EmoticonModel.findOne({ name: target, removed: false }).exec()
     if (!targetEmoticon) return -2
 
@@ -143,7 +131,7 @@ export class EmoticonService {
     return 1
   }
 
-  public async update (context: Message, name: string, newUrl: string) {
+  public static async update (context: Message, name: string, newUrl: string) {
     const prev = await EmoticonModel.findOne({ name, removed: false }).exec()
     if (!prev) return undefined
 
@@ -165,7 +153,7 @@ export class EmoticonService {
     return emoticons
   }
 
-  public async delete (context: Message, name: string) {
+  public static async delete (context: Message, name: string) {
     const prev = await EmoticonModel.findOne({ name, removed: false }).exec()
     if (!prev) return false
 
@@ -193,7 +181,7 @@ export class EmoticonService {
     return true
   }
 
-  public async fetch (context: Message, name: string) {
+  public static async fetch (context: Message, name: string) {
     const match = await EmoticonModel.findOne({ name, removed: false }).exec()
     if (match) {
       await this.insertLog(EmoticonActionType.READ, context, match)
@@ -203,7 +191,7 @@ export class EmoticonService {
     return undefined
   }
 
-  public async search (context: Message, name: string) {
+  public static async search (context: Message, name: string) {
     const searched = _.uniq((await EmoticonModel.find({
       name: new RegExp(name),
       removed: false
@@ -216,12 +204,12 @@ export class EmoticonService {
     return searched
   }
 
-  public async getEquivalents (name: string) {
+  public static async getEquivalents (name: string) {
     const emoticon = await EmoticonModel.findOne({ name, removed: false }).exec()
     return (!emoticon) ? undefined : emoticon.equivalents
   }
 
-  public async getEmoticonLists () {
+  public static async getEmoticonLists () {
     const result = await EmoticonNameModel.find({ removed: false }).exec()
     return _.uniq(result.map(r => r.name))
   }

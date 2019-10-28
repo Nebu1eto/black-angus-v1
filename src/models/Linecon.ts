@@ -2,7 +2,8 @@ import { prop, getModelForClass, Ref } from '@typegoose/typegoose'
 
 export interface SearchResult {
   title: string
-  thumbnail: string
+  id: number
+  link: string
 }
 
 export class LineconCategory {

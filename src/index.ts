@@ -3,8 +3,9 @@ import { Promise as Bluebird } from 'bluebird'
 import { initializeCommands } from './core/initializeCommands'
 import { connectDatabase } from './utils/connectDatabase'
 import { BOT_CONFIG } from './configs/IConfigurations'
-import { EmoticonService } from './services/EmoticonService'
+import EmoticonService from './services/EmoticonService'
 import { LoggingQueue } from './services/LoggingQueue'
+import LineconService from './services/LineconService'
 
 // Install Bluebird Polyfill.
 global.Promise = Bluebird
@@ -18,7 +19,11 @@ class BlackAngusBot {
     await this.discord.setupDiscordConnector()
 
     if (BOT_CONFIG.EMOTICON_ENABLED) {
-      await EmoticonService.getInstance().initialize()
+      await EmoticonService.initialize()
+    }
+
+    if (BOT_CONFIG.LINECON_ENABLED) {
+      await LineconService.initialize()
     }
   }
 }

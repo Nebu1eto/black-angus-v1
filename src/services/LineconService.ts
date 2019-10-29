@@ -62,10 +62,12 @@ export default class LineconService {
     })]
   }
 
-  static async initializeEmoticons (id: number, name: string) {
+  static async initializeEmoticons (id: number, name: string): Promise<[LineconCategory, Linecon[]]> {
     // if already exists return model.
     const prev = await LineconCategoryModel.findOne({ originId: id }).exec()
-    if (prev) return prev
+    if (prev) {
+      return [ prev, await LineconModel.find({ category: prev._id }).exec() ]
+    }
 
     // download and load with parser
     const { body } = await got.get(
@@ -134,14 +136,16 @@ export default class LineconService {
       })
     }))
 
-    return category
+    const linecons = await LineconModel.find({ category: category._id }).exec()
+
+    return [ category, linecons ]
   }
 
-  getCategories () {
-    return LineconCategoryModel.find().exec()
+  static getLinecons () {
+    return LineconModel.find().exec()
   }
 
-  async fetchEmoticons (name: string): Promise<[LineconCategory, Linecon[]] | undefined> {
+  static async fetchEmoticons (name: string): Promise<[LineconCategory, Linecon[]] | undefined> {
     const category = await LineconCategoryModel.findOne({ name }).exec()
     if (!category) return undefined
 
@@ -149,15 +153,15 @@ export default class LineconService {
     return [ category, linecons ]
   }
 
-  fetchEmoticon (keyword: string) {
+  static fetchEmoticon (keyword: string) {
     return LineconModel.findOne({ name: keyword }).exec()
   }
 
-  async renameEmoticon (origin: string, newName: string) {
-    const prev = await LineconModel.findOne({ name: origin }).exec()
+  static async renameEmoticon (keyword: string, newKeyword: string) {
+    const prev = await LineconModel.findOne({ name: keyword }).exec()
     if (!prev) return undefined
 
-    prev.name = newName
+    prev.name = newKeyword
     await prev.save()
     return prev
   }

@@ -20,16 +20,16 @@ export abstract class BasePresentedCommand implements ICommand {
   type: CommandType = CommandType.FEATURE_COMMANDS
   prefix: string = BOT_CONFIG.DEBUG_EXECUTION ? '.' : '!'
 
-  flags: boolean[] = []
+  flags: boolean = true
   abstract commands: string[]
   abstract argsParser: ArgumentParser
   abstract presenter: Presenter
 
-  async action (context: Message): Promise<void> {
+  async action (context: Message, presenter: Presenter = this.presenter): Promise<void> {
     const { content, channel } = context
 
     // 1. return by flag
-    if (_.some(this.flags.map(flag => !flag))) {
+    if (!this.flags) {
       return
     }
 
@@ -42,7 +42,7 @@ export abstract class BasePresentedCommand implements ICommand {
 
     // 3. get arguments with parser and return presented value
     const args = this.argsParser(context)
-    const presented = await this.presenter(args, context)
+    const presented = await presenter(args, context)
     if (presented && presented.length > 0) await channel.send(...presented)
   }
 }

@@ -1,6 +1,7 @@
-// Reference: https://github.com/suchipi/node-apng2gif
+// CAUTION: Install APNG2GIF First.
+// ex. sudo apt install apng2gif
+
 import { spawn } from 'child_process'
-const apng2gifBinPath = require('apng2gif-bin')
 
 export interface TransformArguments {
   transparencyThreshold?: number
@@ -43,7 +44,7 @@ export default function apng2gif (
 
   return new Promise((resolve, reject) => {
     const child = spawn(
-      apng2gifBinPath,
+      'apng2gif',
       args,
       Object.assign({}, defaultOptions, options)
     )

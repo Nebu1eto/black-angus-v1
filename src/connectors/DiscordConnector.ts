@@ -43,7 +43,11 @@ export class DiscordConnector {
           if (!channel) return
           await channel.send(attach)
         } else {
-          await Promise.all(channels.map(channel => channel.send(attach)))
+          const channelCandidates: TextChannel[] = channels.filter(
+            ch => ch.name === BOT_CONFIG.DEBUG_HISTORY_OR_ERROR_CHANNEL
+          )
+
+          await Promise.all(channelCandidates.map(ch => ch.send(attach)))
         }
 
       })
@@ -89,7 +93,11 @@ export class DiscordConnector {
           if (!channel) return
           await channel.send(attach)
         } else {
-          await Promise.all(channels.map(channel => channel.send(attach)))
+          const channelCandidates: TextChannel[] = channels.filter(
+            ch => ch.name === BOT_CONFIG.DEBUG_HISTORY_OR_ERROR_CHANNEL
+          )
+
+          await Promise.all(channelCandidates.map(ch => ch.send(attach)))
         }
       })
     ).subscribe()

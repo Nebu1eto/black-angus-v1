@@ -9,8 +9,9 @@ import util from 'util'
 import { BOT_CONFIG } from '../configs/IConfigurations'
 import { Linecon, LineconCategory, LineconCategoryModel, LineconModel, SearchResult } from '../models/Linecon'
 import apng2gif from '../utils/apng2gif'
-import { isAnimatedPng } from '../utils/isAnimatedPng'
+import { isAnimatedPng } from '../utils/imageMeta'
 import { tryCatch } from '../utils/tryCatch'
+import { LoggingQueue } from './LoggingQueue'
 
 const appendFile = util.promisify(fs.appendFile)
 const mkdir = util.promisify(fs.mkdir)
@@ -78,6 +79,7 @@ export default class LineconService {
         }
       }
     )
+
     const $ = cheerio.load(body)
 
     // get title and urls
@@ -119,7 +121,12 @@ export default class LineconService {
       let animated = false
       if (isAnimatedPng(body)) {
         animated = true
-        await apng2gif(pngFilePath, gifFilePath, {})
+        const [error] = await tryCatch(apng2gif(pngFilePath, gifFilePath, {}))
+        if (error) {
+          LoggingQueue.errorSubject.next({
+            time: new Date(), error
+          })
+        }
       }
 
       await sharp(pngFilePath)
@@ -137,6 +144,18 @@ export default class LineconService {
     }))
 
     const linecons = await LineconModel.find({ category: category._id }).exec()
+
+    LoggingQueue.debugSubject.next({
+      title: 'Debug Linecon - Category',
+      message: JSON.stringify(category.toJSON()),
+      forced: true
+    })
+
+    LoggingQueue.debugSubject.next({
+      title: 'Debug Linecon - Linecons',
+      message: JSON.stringify(linecons.map(linecon => linecon.toJSON())),
+      forced: true
+    })
 
     return [ category, linecons ]
   }

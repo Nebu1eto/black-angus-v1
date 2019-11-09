@@ -10,7 +10,8 @@
     "posttest": "",
     "build": "",
     "lint": "tslint --fix --project tsconfig.json",
-    "compile": "tsc"
+    "compile": "tsc",
+    "clean": "rimraf package-lock.json node-modules && npm install"
   },
   "author": "Haze Lee <hazelee@realignist.me>",
   "license": "MIT",
@@ -25,6 +26,7 @@
     "@types/node": "^10.15.3",
     "@types/sharp": "^0.23.0",
     "ava": "^2.4.0",
+    "rimraf": "^3.0.0",
     "rxjs-tslint": "^0.1.7",
     "ts-node": "^8.4.1",
     "tslint": "^5.20.0",

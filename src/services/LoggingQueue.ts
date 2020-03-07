@@ -1,16 +1,16 @@
 import { Subject } from 'rxjs'
-import { Message } from 'discord.js'
+import { Message, PartialMessage } from 'discord.js'
 
 export interface ILoggingError {
   time: Date,
   error: Error,
-  context?: Message
+  context?: Message | PartialMessage
 }
 
 export interface ILoggingDebug {
   title: string,
   message: string,
-  context?: Message,
+  context?: Message | PartialMessage,
   forced?: boolean
 }
 

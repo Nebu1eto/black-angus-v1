@@ -1,6 +1,6 @@
 import charset from 'charset'
 import cheerio from 'cheerio'
-import { Message } from 'discord.js'
+import { Message, PartialMessage } from 'discord.js'
 import got from 'got'
 import iconv from 'iconv-lite'
 import _ from 'lodash'
@@ -15,7 +15,8 @@ export default class WeatherService {
     const { body: data, headers } = await got.get(
       'http://www.koreawqi.go.kr/wQSCHomeLayout_D.wq?action_type=T',
       {
-        encoding: null
+        responseType: 'buffer',
+        encoding: 'hex'
       }
     )
 
@@ -57,20 +58,19 @@ export default class WeatherService {
     }
   }
 
-  static async getLocation (address: string, key: string, context: Message) {
+  static async getLocation (address: string, key: string, context: Message | PartialMessage) {
     const query = querystring.stringify({
       region: 'kr', key, address
     })
 
-    const { body } = await got.get(
+    const body: any = await got.get(
       `https://maps.googleapis.com/maps/api/geocode/json?${query}`,
       {
-        json: true,
         headers: {
           'Accept-Language': 'ko-KR'
         }
       }
-    )
+    ).json()
 
     if (body.status !== 'OK' || body.results.length <= 0) {
       return undefined
@@ -96,28 +96,26 @@ export default class WeatherService {
       'AppleWebKit/537.36 (KHTML, like Gecko) ' +
       'Chrome/79.0.3919.0 Safari/537.36'
 
-    const resp1 = (await got.get(
+    const resp1: any = await got.get(
       `https://api.waqi.info/feed/geo:${lat};${lng}/?token=${token}`,
       {
-        json: true,
         headers: {
           'Accept-Language': 'ko-KR'
         }
       }
-    )).body
+    ).json()
 
     if (!resp1.data.idx) return undefined
     const index = resp1.data.idx
 
-    const resp2 = (await got.get(
+    const resp2: any = await got.get(
       `https://api.waqi.info/api/feed/@${index}/obs.en.json?token=${token}`,
       {
-        json: true,
         headers: {
           'User-Agent': fakeUA
         }
       }
-    )).body
+    ).json()
 
     if (resp2.rxs.obs[0].status !== 'ok') return undefined
     const data = resp2.rxs.obs[0].msg
@@ -180,7 +178,7 @@ export default class WeatherService {
     }
   }
 
-  private static async getAWSData (context: Message) {
+  private static async getAWSData (context: Message | PartialMessage) {
     // 0. fetch cached in database
     const cached = await WeatherRecordModel.find({}).exec()
     if (cached.length > 0) {
@@ -195,12 +193,12 @@ export default class WeatherService {
 
     try {
       // 1. fetch api
-      const rawResp: RawAWSResponse = (await got.get(
+      const rawResp = (await got.get(
         'https://item4.net/api/weather/',
         {
-          json: true
+          responseType: 'json'
         }
-      )).body
+      )).body as RawAWSResponse
 
       // 2. transform primitive response to models
       const inserted = await WeatherRecordModel.insertMany(
@@ -233,7 +231,7 @@ export default class WeatherService {
     }
   }
 
-  static async getWeatherFromAWS (location: string, context: Message) {
+  static async getWeatherFromAWS (location: string, context: Message | PartialMessage) {
     const records = await this.getAWSData(context)
     if (!records) return undefined
 

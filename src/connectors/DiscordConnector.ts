@@ -1,7 +1,7 @@
 import debug from 'debug'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
-import { Client, Message, TextChannel, RichEmbed } from 'discord.js'
+import { Client, Message, TextChannel, MessageEmbed } from 'discord.js'
 import { BOT_CONFIG } from '../configs/IConfigurations'
 import { CommandFactory } from '../core/CommandFactory'
 import { LoggingQueue } from '../services/LoggingQueue'
@@ -26,9 +26,9 @@ export class DiscordConnector {
         if (!BOT_CONFIG.DEBUG_HISTORY_TO_CHANNEL && !forced) return
 
         // find channel and send!
-        const channels: TextChannel[] = this.client.channels
-          .filter(ch => ch.type === 'text').array() as TextChannel[]
-        const attach = new RichEmbed()
+        const channels: TextChannel[] = this.client.channels.cache
+          .filter(channel => channel.type === 'text').array() as TextChannel[]
+        const attach = new MessageEmbed()
           .setColor('BLUE')
           .setTitle(title)
           .setDescription(message.substring(0, 2048))
@@ -61,8 +61,8 @@ export class DiscordConnector {
         const messages = [
           // Need to Know Context and Time
           (context !== undefined) ?
-          `${timeStr} <${context.author.username}#` +
-          `${context.author.discriminator}> ${context.content}` : timeStr,
+          `${timeStr} <${context.author?.username}#` +
+          `${context.author?.discriminator}> ${context.content}` : timeStr,
 
           // Error Title, Stacktrace
           `${error.message}`,
@@ -72,9 +72,9 @@ export class DiscordConnector {
         if (!BOT_CONFIG.DEBUG_ERROR_TO_CHANNEL) return
 
         // find channel and send!
-        const channels: TextChannel[] = this.client.channels
-          .filterArray(ch => ch.type === 'text') as TextChannel[]
-        const attach = new RichEmbed()
+        const channels: TextChannel[] = this.client.channels.cache
+          .filter(channel => channel.type === 'text').array() as TextChannel[]
+        const attach = new MessageEmbed()
           .setColor('#ff4444')
           .setTitle('Runtime Error')
           .setDescription(messages[0])

@@ -6,7 +6,7 @@ import { presentDuplicateEmoticon } from '../../presenters/Emoticon'
 export class EmoticonDuplicate extends BasePresentedCommand {
   commands: string[] = ['복제']
   argsParser: ArgumentParser = ({ content }) => {
-    const [_, name, target] = content.split(' ')
+    const [_, name, target] = content?.split(' ')
     return { name, target }
   }
 

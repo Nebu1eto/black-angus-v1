@@ -7,7 +7,7 @@ export class LineconRename extends BasePresentedCommand {
   commands: string[] = ['라인변경']
 
   argsParser: ArgumentParser = ({ content }) => {
-    const [_, newKeyword, keyword ] = content.split(' ')
+    const [_, newKeyword, keyword ] = content?.split(' ')
     return { keyword, newKeyword }
   }
 

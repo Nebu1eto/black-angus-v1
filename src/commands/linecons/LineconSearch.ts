@@ -7,7 +7,7 @@ export class LineconSearch extends BasePresentedCommand {
   commands: string[] = ['라인검색']
 
   argsParser: ArgumentParser = ({ content }) => {
-    const [_, keyword, page, limit] = content.split(' ')
+    const [_, keyword, page, limit] = content?.split(' ')
     return { keyword, page, limit }
   }
 

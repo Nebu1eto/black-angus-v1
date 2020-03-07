@@ -36,14 +36,7 @@ export default class LineconService {
 
   static async searchEmoticons (keyword: string, page: number = 1, limit: number = 10): Promise<[number, SearchResult[]]> {
     // download and load with parser
-    const { body } = await got.get(`https://store.line.me/api/search/sticker`, {
-      query: new URLSearchParams([
-        ['query', keyword],
-        ['offset', `${limit * (page - 1)}`],
-        ['limit', `${limit}`],
-        ['type', 'ALL'],
-        ['includeFacets', 'true']
-      ]),
+    const body: any = await got.get(`https://store.line.me/api/search/sticker`, {
       headers: {
         'User-Agent': fakeUA,
         'X-Requested-With': 'XMLHttpRequest',
@@ -51,8 +44,14 @@ export default class LineconService {
           keyword
         )}`
       },
-      json: true
-    })
+      searchParams: new URLSearchParams([
+        ['query', keyword],
+        ['offset', `${limit * (page - 1)}`],
+        ['limit', `${limit}`],
+        ['type', 'ALL'],
+        ['includeFacets', 'true']
+      ])
+    }).json()
 
     return [body.totalCount as number, (body.items as any[]).map(item => {
       return {
@@ -84,7 +83,7 @@ export default class LineconService {
 
     // get title and urls
     const title = $('p.mdCMN38Item01Ttl').text()
-    const emoticonUrls = (Array.from(
+    const emoticonUrls = ((Array.from(
       $('li.mdCMN09Li.FnStickerPreviewItem')
         .map((_, element) => {
           const target = element.attribs['data-preview']
@@ -92,11 +91,11 @@ export default class LineconService {
 
           const baseData = JSON.parse(target)
           return baseData.animationUrl
-            ? baseData.animationUrl
-            : baseData.staticUrl
+            ? baseData.animationUrl as string | undefined
+            : baseData.staticUrl as string | undefined
         })
-        .filter(url => url !== undefined)
-    ) as unknown) as string[]
+    ) as unknown) as Array<string | undefined>)
+      .filter(value => value !== undefined) as string[]
 
     // create folder, and download images
     const folderPath = path.join(BOT_CONFIG.LINECON_FILE_PATH, `${id}`)
@@ -107,10 +106,9 @@ export default class LineconService {
 
     await Promise.all(emoticonUrls.map(async (url, index) => {
       // 1. download original file
-      const { body } = await got.get(url, {
-        encoding: null,
+      const body = await got.get(url, {
         retry: 3
-      })
+      }).buffer()
 
       const pngFilePath = path.join(folderPath, `i_${index}.png`)
       const thumbnailPath = path.join(folderPath, `t_${index}.png`)

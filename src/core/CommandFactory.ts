@@ -1,4 +1,4 @@
-import { Message } from 'discord.js'
+import { Message, PartialMessage } from 'discord.js'
 import _ from 'lodash'
 import { LoggingQueue } from '../services/LoggingQueue'
 import { CommandType, ICommand } from './ICommand'
@@ -29,12 +29,12 @@ export class CommandFactory {
     this.commands.add(command)
   }
 
-  public async process (context: Message) {
+  public async process (context: Message | PartialMessage) {
     // 1. check message's prefix
     const matched = _.chain(Array.from(this.commands.values()))
       .map(command => command.prefix)
       .union()
-      .map(prefix => context.content.startsWith(prefix))
+      .map(prefix => context.content?.startsWith(prefix))
       .some()
       .value()
     if (!matched) return
@@ -43,8 +43,8 @@ export class CommandFactory {
     LoggingQueue.debugSubject.next({
       title: '메세지 로그',
       message: `[${format(new Date(), 'yyyy. MM. dd. a hh:mm:ss', { locale: ko })}] <${
-        context.author.username
-      }#${context.author.discriminator}> ${context.content}`,
+        context.author?.username
+      }#${context.author?.discriminator}> ${context.content}`,
       context
     })
 

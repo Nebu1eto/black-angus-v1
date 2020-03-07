@@ -7,7 +7,7 @@ export class LineconFetchCategory extends BasePresentedCommand {
   commands: string[] = ['라인확인']
 
   argsParser: ArgumentParser = ({ content }) => {
-    const [_, name] = content.split(' ')
+    const [_, name] = content?.split(' ')
     return { name }
   }
 

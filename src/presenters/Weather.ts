@@ -1,6 +1,6 @@
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
-import { RichEmbed, Message } from 'discord.js'
+import { MessageEmbed, Message, PartialMessage } from 'discord.js'
 import { BOT_CONFIG } from '../configs/IConfigurations'
 import { KeyValueString, Presenter } from '../core/BasePresentedCommand'
 import { IAQIField } from '../models/Weather'
@@ -10,7 +10,7 @@ export const presentGetRiverTemperature: Presenter = async () => {
   const result = await WeatherService.getRiverTemp()
   if (!result) {
     return [
-      new RichEmbed()
+      new MessageEmbed()
         .setColor('RED')
         .setTitle('한강 수온')
         .setDescription('구리, 양평, 가평 측정소를 기준으로 현재 수온을 가져올 수 없었습니다.')
@@ -18,7 +18,7 @@ export const presentGetRiverTemperature: Presenter = async () => {
   }
 
   const { time, data } = result
-  let embed = new RichEmbed()
+  let embed = new MessageEmbed()
     .setColor('DARK_PURPLE')
     .setTitle('한강 수온')
     .setFooter(`${time} 기준 데이터입니다.`)
@@ -30,7 +30,7 @@ export const presentGetRiverTemperature: Presenter = async () => {
   return [ embed ]
 }
 
-export const presentGetAirQuality: Presenter = async (map: KeyValueString, context: Message) => {
+export const presentGetAirQuality: Presenter = async (map: KeyValueString, context: Message | PartialMessage) => {
   const { keyword } = map
 
   const location = await WeatherService.getLocation(keyword, BOT_CONFIG.GOOGLE_API_KEY, context)
@@ -64,7 +64,7 @@ export const presentGetAirQuality: Presenter = async (map: KeyValueString, conte
   }
 
   const description = WeatherService.getAQIDescription(airResult.index)
-  let attach = new RichEmbed()
+  let attach = new MessageEmbed()
     .setColor('DARK_PURPLE')
     .setTitle('AQI Result')
     .setDescription(
@@ -92,7 +92,7 @@ export const presentGetAirQuality: Presenter = async (map: KeyValueString, conte
   return [attach]
 }
 
-export const presentGetWeather: Presenter = async (map: KeyValueString, context: Message) => {
+export const presentGetWeather: Presenter = async (map: KeyValueString, context: Message | PartialMessage) => {
   const { keyword } = map
   const results = await WeatherService.getWeatherFromAWS(keyword, context)
   if (!results || results.length <= 0) {
@@ -130,7 +130,7 @@ export const presentGetWeather: Presenter = async (map: KeyValueString, context:
         }
       })(record.rain.is_raining)
 
-      let embed = new RichEmbed()
+      let embed = new MessageEmbed()
         .setTitle('Weather Result from AWS')
         .setColor('ORANGE')
         .setDescription(`[${emoji}] ${record.name} / ${record.address}`)
@@ -163,7 +163,7 @@ export const presentGetWeather: Presenter = async (map: KeyValueString, context:
     })
 
   for (const embed of embeds) {
-    await context.channel.send(embed)
+    await context.channel?.send(embed)
   }
 
   return []

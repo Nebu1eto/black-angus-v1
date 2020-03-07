@@ -1,4 +1,4 @@
-import { Message } from 'discord.js'
+import { Message, PartialMessage } from 'discord.js'
 
 export enum CommandType {
   ADMIN_COMMANDS = 'ADMIN_COMMANDS',
@@ -9,5 +9,5 @@ export enum CommandType {
 export interface ICommand {
   type: CommandType,
   prefix: string,
-  action: (context: Message) => Promise<void>
+  action: (context: Message | PartialMessage) => Promise<void>
 }

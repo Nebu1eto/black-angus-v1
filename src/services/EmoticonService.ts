@@ -2,7 +2,7 @@ import { DocumentType } from '@typegoose/typegoose'
 import crypto from 'crypto'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
-import { Message } from 'discord.js'
+import { Message, PartialMessage } from 'discord.js'
 import fs from 'fs'
 import got from 'got'
 import _ from 'lodash'
@@ -40,12 +40,9 @@ export default class EmoticonService {
 
   private static async downloadFile (rawUrl: string) {
     const url = new URL(rawUrl)
-    const { body } = await(
-      got.get(rawUrl, {
-        retry: 3,
-        encoding: null
-      })
-    )
+    const body = await got.get(rawUrl, {
+      retry: 3
+    }).buffer()
 
     const paths = url.pathname.split('/')
     const extension = (() => {
@@ -68,19 +65,19 @@ export default class EmoticonService {
     return fileName
   }
 
-  private static insertLog (type: EmoticonActionType, context: Message, emoticon: DocumentType<Emoticon>) {
+  private static insertLog (type: EmoticonActionType, context: Message | PartialMessage, emoticon: DocumentType<Emoticon>) {
     return EmoticonLogModel.create({
       type,
       context: `[${format(new Date(), 'yyyy. MM. dd. a hh:mm:ss', {
         locale: ko
-      })}] <${context.author.username}#${context.author.discriminator}> ${
+      })}] <${context.author?.username}#${context.author?.discriminator}> ${
         context.content
       }`,
       emoticon
     })
   }
 
-  public static async upload (context: Message, name: string, rawUrl: string) {
+  public static async upload (context: Message | PartialMessage, name: string, rawUrl: string) {
     const prev = await EmoticonModel.findOne({ name, removed: false }).exec()
     if (prev) return -1
 
@@ -99,7 +96,7 @@ export default class EmoticonService {
     return 1
   }
 
-  public static async duplicate (context: Message, name: string, target: string) {
+  public static async duplicate (context: Message | PartialMessage, name: string, target: string) {
     const targetEmoticon = await EmoticonModel.findOne({ name: target, removed: false }).exec()
     if (!targetEmoticon) return -2
 
@@ -131,7 +128,7 @@ export default class EmoticonService {
     return 1
   }
 
-  public static async update (context: Message, name: string, newUrl: string) {
+  public static async update (context: Message | PartialMessage, name: string, newUrl: string) {
     const prev = await EmoticonModel.findOne({ name, removed: false }).exec()
     if (!prev) return undefined
 
@@ -153,7 +150,7 @@ export default class EmoticonService {
     return emoticons
   }
 
-  public static async delete (context: Message, name: string) {
+  public static async delete (context: Message | PartialMessage, name: string) {
     const prev = await EmoticonModel.findOne({ name, removed: false }).exec()
     if (!prev) return false
 
@@ -181,7 +178,7 @@ export default class EmoticonService {
     return true
   }
 
-  public static async fetch (context: Message, name: string) {
+  public static async fetch (context: Message | PartialMessage, name: string) {
     const match = await EmoticonModel.findOne({ name, removed: false }).exec()
     if (match) {
       await this.insertLog(EmoticonActionType.READ, context, match)
@@ -191,7 +188,7 @@ export default class EmoticonService {
     return undefined
   }
 
-  public static async search (context: Message, name: string) {
+  public static async search (context: Message | PartialMessage, name: string) {
     const searched = _.uniq((await EmoticonModel.find({
       name: new RegExp(name),
       removed: false
@@ -210,7 +207,7 @@ export default class EmoticonService {
   }
 
   public static async getEmoticonLists () {
-    const result = await EmoticonNameModel.find({ removed: false }).exec()
+    const result = await EmoticonNameModel.find({}).exec()
     return _.uniq(result.map(r => r.name))
   }
 }

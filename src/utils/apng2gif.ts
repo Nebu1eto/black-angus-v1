@@ -1,7 +1,7 @@
 // CAUTION: Install APNG2GIF First.
 // ex. sudo apt install apng2gif
-
-import { spawn } from 'child_process'
+// Reference: https://github.com/suchipi/node-apng2gif
+import { spawn, StdioOptions } from 'child_process'
 
 export interface TransformArguments {
   transparencyThreshold?: number
@@ -15,7 +15,7 @@ function parseArgs (
 ) {
   const args = [inPath]
 
-  if (outPath != null) {
+  if (outPath !== null) {
     args.push(outPath)
   }
   if (options.transparencyThreshold) {
@@ -31,7 +31,7 @@ function parseArgs (
 }
 
 const defaultOptions = {
-  stdio: 'ignore',
+  stdio: 'ignore' as StdioOptions,
   windowsHide: true
 }
 

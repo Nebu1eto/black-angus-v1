@@ -1,13 +1,17 @@
-import { Attachment, Message } from 'discord.js'
+import { MessageAttachment, Message, PartialMessage } from 'discord.js'
 import { KeyValueString, Presenter } from '../core/BasePresentedCommand'
 import EmoticonService from '../services/EmoticonService'
 
-export const presentFetchEmoticon: Presenter = async (map: KeyValueString, context: Message) => {
+export const presentFetchEmoticon: Presenter = async (map: KeyValueString, context: Message | PartialMessage) => {
   const file = await EmoticonService.fetch(context, map.name)
-  return file ? [{ file }] : undefined
+  return file ? [{
+    files: [
+      { attachment: file }
+    ]
+  }] : undefined
 }
 
-export const presentUploadEmoticon: Presenter = async (map: KeyValueString, context: Message) => {
+export const presentUploadEmoticon: Presenter = async (map: KeyValueString, context: Message | PartialMessage) => {
   const { name, url } = map
   const result = await EmoticonService.upload(context, name, url)
   switch (result) {
@@ -20,7 +24,7 @@ export const presentUploadEmoticon: Presenter = async (map: KeyValueString, cont
   }
 }
 
-export const presentDuplicateEmoticon: Presenter = async (map: KeyValueString, context: Message) => {
+export const presentDuplicateEmoticon: Presenter = async (map: KeyValueString, context: Message | PartialMessage) => {
   const { name, target } = map
   const result = await EmoticonService.duplicate(context, name, target)
   switch (result) {
@@ -35,7 +39,7 @@ export const presentDuplicateEmoticon: Presenter = async (map: KeyValueString, c
   }
 }
 
-export const presentUpdateEmoticon: Presenter = async (map: KeyValueString, context: Message) => {
+export const presentUpdateEmoticon: Presenter = async (map: KeyValueString, context: Message | PartialMessage) => {
   const { name, url } = map
   const results = await EmoticonService.update(context, name, url)
   if (!results) return [`${name} 항목이 존재하지 않습니다.`]
@@ -45,7 +49,7 @@ export const presentUpdateEmoticon: Presenter = async (map: KeyValueString, cont
   ]
 }
 
-export const presentDeleteEmoticon: Presenter = async (map: KeyValueString, context: Message) => {
+export const presentDeleteEmoticon: Presenter = async (map: KeyValueString, context: Message | PartialMessage) => {
   const result = await EmoticonService.delete(context, map.name)
   return [
     result
@@ -54,7 +58,7 @@ export const presentDeleteEmoticon: Presenter = async (map: KeyValueString, cont
   ]
 }
 
-export const presentSearchEmoticon: Presenter = async (map: KeyValueString, context: Message) => {
+export const presentSearchEmoticon: Presenter = async (map: KeyValueString, context: Message | PartialMessage) => {
   const result = await EmoticonService.search(context, map.name)
   return [`데이터베이스를 조회한 결과, 요청하신 '${map.name}' 키워드를 포함하는 항목 ${
     result.length
@@ -65,7 +69,7 @@ export const presentSearchEmoticon: Presenter = async (map: KeyValueString, cont
   }`]
 }
 
-export const presentGetEquivalentsEmoticon: Presenter = async (map: KeyValueString, context: Message) => {
+export const presentGetEquivalentsEmoticon: Presenter = async (map: KeyValueString, context: Message | PartialMessage) => {
   const equivalents = await EmoticonService.getEquivalents(map.name)
   return [
     equivalents
@@ -76,11 +80,10 @@ export const presentGetEquivalentsEmoticon: Presenter = async (map: KeyValueStri
 
 export const presentListEmoticon: Presenter = async () => {
   const result = await EmoticonService.getEmoticonLists()
+
   return [
-    '현재 기준 디시콘 목록입니다.',
-    new Attachment(
+    '현재 기준 디시콘 목록입니다.', new MessageAttachment(
       Buffer.from(result.sort().join('\n'), 'utf8'),
-      'dccon_list.txt'
-    )
+    'dccon_list.txt')
   ]
 }

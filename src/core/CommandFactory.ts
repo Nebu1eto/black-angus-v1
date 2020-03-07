@@ -13,7 +13,7 @@ export function CommandDefinition () {
 
 export class CommandFactory {
   private static instance: CommandFactory
-  private commands: Set<ICommand> = new Set()
+  private readonly commands: Set<ICommand> = new Set()
 
   private constructor () {}
 

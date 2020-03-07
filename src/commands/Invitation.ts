@@ -10,7 +10,7 @@ export class Invitation implements ICommand {
 
   async action (context: Message | PartialMessage) {
     const { content, channel } = context
-    if (content?.indexOf(this.prefix + '초대') === -1) {
+    if (!content?.includes(this.prefix + '초대')) {
       return
     }
 

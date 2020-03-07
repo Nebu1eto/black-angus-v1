@@ -1,0 +1,31 @@
+{
+  "extends": [
+    "standard-with-typescript",
+    "prettier/@typescript-eslint",
+    "plugin:ava/recommended",
+    "plugin:import/errors",
+    "plugin:import/warnings"
+  ],
+  "parserOptions": {
+    "project": "./tsconfig.json"
+  },
+  "plugins": [
+    "import"
+  ],
+  "rules": {
+    "promise/param-names": 0,
+    "import/no-unresolved": 0,
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "caughtErrors": "all",
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }
+    ], 
+    "@typescript-eslint/restrict-template-expressions": 0,
+    "@typescript-eslint/explicit-function-return-type": 0,
+    "@typescript-eslint/strict-boolean-expressions": 0
+  }
+}

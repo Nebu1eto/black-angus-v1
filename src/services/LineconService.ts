@@ -66,7 +66,7 @@ export default class LineconService {
     // if already exists return model.
     const prev = await LineconCategoryModel.findOne({ originId: id }).exec()
     if (prev) {
-      return [ prev, await LineconModel.find({ category: prev._id }).exec() ]
+      return [prev, await LineconModel.find({ category: prev._id }).exec()]
     }
 
     // download and load with parser
@@ -155,7 +155,7 @@ export default class LineconService {
       forced: true
     })
 
-    return [ category, linecons ]
+    return [category, linecons]
   }
 
   static getLinecons () {
@@ -167,7 +167,7 @@ export default class LineconService {
     if (!category) return undefined
 
     const linecons = await LineconModel.find({ _id: category._id }).exec()
-    return [ category, linecons ]
+    return [category, linecons]
   }
 
   static fetchEmoticon (keyword: string) {

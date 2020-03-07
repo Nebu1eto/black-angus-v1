@@ -22,12 +22,12 @@ export const presentSearchLinecon: Presenter = async (map: KeyValueString) => {
       .addField(`[${result.id}] ${result.title}`, result.link, true)
   })
 
-  return [ embed ]
+  return [embed]
 }
 
 export const presentInitializeLineconCategory: Presenter = async (key: KeyValueString) => {
   const { id, name } = key
-  const [ category, linecons ] = await LineconService.initializeEmoticons(Number(id), name)
+  const [category, linecons] = await LineconService.initializeEmoticons(Number(id), name)
 
   return [
     new MessageEmbed()
@@ -43,7 +43,7 @@ export const presentFetchLineconCategory: Presenter = async (key: KeyValueString
     return [`'${key.name}' 라인콘에 대한 검색 결과가 없습니다.`]
   }
 
-  const [ category, linecons ] = result
+  const [category, linecons] = result
   return [
     new MessageEmbed()
       .setTitle(`라인콘 카테고리 [${category.name}]`)

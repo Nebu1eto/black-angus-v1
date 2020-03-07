@@ -14,7 +14,7 @@ export class DiscordConnector {
   private static debugLogger = debug('Debug Channel')
   private static errorLogger = debug('Error Channel')
 
-  private client = new Client()
+  private readonly client = new Client()
 
   constructor () {
     DiscordConnector.debugLogger.enabled = true
@@ -49,7 +49,6 @@ export class DiscordConnector {
 
           await Promise.all(channelCandidates.map(ch => ch.send(attach)))
         }
-
       })
     ).subscribe()
 
@@ -60,8 +59,8 @@ export class DiscordConnector {
         })}]`
         const messages = [
           // Need to Know Context and Time
-          (context !== undefined) ?
-          `${timeStr} <${context.author?.username}#` +
+          (context !== undefined)
+          ? `${timeStr} <${context.author?.username}#` +
           `${context.author?.discriminator}> ${context.content}` : timeStr,
 
           // Error Title, Stacktrace

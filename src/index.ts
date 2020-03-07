@@ -11,7 +11,7 @@ import LineconService from './services/LineconService'
 global.Promise = Bluebird
 
 class BlackAngusBot {
-  private discord: DiscordConnector = new DiscordConnector()
+  private readonly discord: DiscordConnector = new DiscordConnector()
 
   async start () {
     await connectDatabase()

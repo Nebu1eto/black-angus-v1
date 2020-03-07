@@ -21,7 +21,7 @@ export default class WeatherService {
     )
 
     const encoding = charset(headers, data)
-    const body = iconv.decode(data, encoding ? encoding : 'euc-kr')
+    const body = iconv.decode(data, encoding ?? 'euc-kr')
     const $ = cheerio.load(body)
 
     const baseTimeCode = $('.data script')[0]
@@ -33,9 +33,9 @@ export default class WeatherService {
     const time = `${baseTimeCode[0].substring(4, 6)}월 ${
       baseTimeCode[0].substring(6, 8)}일 ${baseTimeCode[1]}시`
 
-    const candidate1 = $('.site_S01004 td.avg1')    // 구리
-    const candidate2 = $('.site_S01025 td.avg1')    // 양평
-    const candidate3 = $('.site_S01001 td.avg1')    // 가평
+    const candidate1 = $('.site_S01004 td.avg1') // 구리
+    const candidate2 = $('.site_S01025 td.avg1') // 양평
+    const candidate3 = $('.site_S01001 td.avg1') // 가평
     const getTemperature = (candidate: Cheerio) =>
       candidate
         .text()
@@ -243,7 +243,7 @@ export default class WeatherService {
       }
 
       const nameRatio = getFuzzyKoreanPartialRatio(record.name, location)
-      const addressScore = (record.address.indexOf(location) !== -1) ? 50 : 0
+      const addressScore = (record.address.includes(location)) ? 50 : 0
       const score = nameRatio + addressScore
       if (score >= 90) results.push([score, record])
     }

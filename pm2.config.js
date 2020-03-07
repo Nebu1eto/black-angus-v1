@@ -1,5 +1,5 @@
 module.exports = {
-  apps : [{
+  apps: [{
     name: 'Black Angus',
     script: 'ts-node',
     args: 'src/index.ts',
@@ -11,4 +11,4 @@ module.exports = {
       CONFIG_FILE: './env/config.json'
     }
   }]
-};
+}

@@ -48,7 +48,7 @@ export default class EmoticonService {
     const extension = (() => {
       const extname = path.extname(paths[paths.length - 1])
       const preservedExts = ['.jpg', '.png', '.gif']
-      return preservedExts.indexOf(extname) === -1 ? '.jpg' : extname
+      return !preservedExts.includes(extname) ? '.jpg' : extname
     })()
 
     const fileName = path.join(
@@ -104,7 +104,7 @@ export default class EmoticonService {
     if (prev) return -1
 
     const [err, duplicated] = await tryCatch(EmoticonModel.create({
-      name, path: targetEmoticon.path, equivalents: [ targetEmoticon.name ]
+      name, path: targetEmoticon.path, equivalents: [targetEmoticon.name]
     }))
 
     if (err) {

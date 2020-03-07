@@ -64,16 +64,16 @@ export const presentSearchEmoticon: Presenter = async (map: KeyValueString, cont
     result.length
   }건이 존재합니다.${
     result.length > 0
-      ? `\n - \`${(result.map(emoticon => emoticon.name)).join('\`, \`')}\``
+      ? `\n - \`${(result.map(emoticon => emoticon.name)).join('`, `')}\``
       : ''
   }`]
 }
 
-export const presentGetEquivalentsEmoticon: Presenter = async (map: KeyValueString, context: Message | PartialMessage) => {
+export const presentGetEquivalentsEmoticon: Presenter = async (map: KeyValueString) => {
   const equivalents = await EmoticonService.getEquivalents(map.name)
   return [
     equivalents
-     ? `${map.name} 항목의 동의어는 다음과 같습니다: \`${equivalents.join('\`, \`')}\``
+     ? `${map.name} 항목의 동의어는 다음과 같습니다: \`${equivalents.join('`, `')}\``
      : `${map.name} 항목이 존재하지 않습니다.`
   ]
 }

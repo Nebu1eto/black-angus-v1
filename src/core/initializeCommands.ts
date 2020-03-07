@@ -7,14 +7,14 @@ const readdir = util.promisify(fs.readdir)
 
 // import every commands
 export async function initializeCommands (folder: string = path.join(__dirname, '../commands')) {
-  const files: [string, Stats][] = (await Promise.all((await readdir(folder)).map(async file => {
+  const files: Array<[string, Stats]> = (await Promise.all((await readdir(folder)).map(async file => {
     const fullPath = path.join(folder, file)
     return [fullPath, await lstat(fullPath)]
-  }))) as [string, Stats][]
+  }))) as Array<[string, Stats]>
 
   const imports = files
     .filter(
-      ([file, info]) => info.isFile() && ['.ts', '.js'].indexOf(path.extname(file)) !== -1
+      ([file, info]) => info.isFile() && ['.ts', '.js'].includes(path.extname(file))
     )
 
   for (const [module] of imports) {

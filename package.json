@@ -5,19 +5,18 @@
   "main": "src/index.ts",
   "scripts": {
     "start": "ts-node src/index.ts",
-    "pretest": "",
     "test": "ava",
-    "posttest": "",
-    "build": "",
-    "lint": "tslint --fix --project tsconfig.json",
-    "compile": "tsc",
+    "build": "tsc",
+    "lint": "eslint --fix --ext .js,.ts .",
     "clean": "rimraf package-lock.json node-modules && npm install"
   },
   "author": "Haze Lee <hazelee@realignist.me>",
   "license": "MIT",
   "devDependencies": {
-    "@commitlint/cli": "^8.2.0",
-    "@commitlint/config-conventional": "^8.2.0",
+    "@commitlint/cli": "^8.3.5",
+    "@commitlint/config-conventional": "^8.3.4",
+    "@semantic-release/changelog": "^5.0.0",
+    "@semantic-release/git": "^9.0.0",
     "@types/bluebird": "^3.5.30",
     "@types/charset": "^1.0.1",
     "@types/cheerio": "^0.22.16",
@@ -27,12 +26,21 @@
     "@types/mongoose": "^5.7.3",
     "@types/node": "^12",
     "@types/sharp": "^0.24.0",
+    "@typescript-eslint/eslint-plugin": "^2.22.0",
     "ava": "^3.5.0",
+    "cz-conventional-changelog": "^3.1.0",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.10.0",
+    "eslint-config-standard-with-typescript": "^14.0.0",
+    "eslint-plugin-ava": "^10.2.0",
+    "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-node": "^11.0.0",
+    "eslint-plugin-prettier": "^3.1.2",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
     "rimraf": "^3.0.2",
-    "rxjs-tslint": "^0.1.7",
+    "semantic-release": "^17.0.4",
     "ts-node": "^8.6.2",
-    "tslint": "^6.0.0",
-    "tslint-config-standard": "^9.0.0",
     "typescript": "^3.8.3"
   },
   "dependencies": {
@@ -61,7 +69,17 @@
   },
   "husky": {
     "hooks": {
+      "pre-commit": "# npm run lint",
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
+  },
+  "ava": {
+    "compileEnhancements": false,
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
   }
 }

@@ -62,7 +62,7 @@ async function migrate () {
       fileNameMap[realPath] = hashPath
       await tryCatch(copyFile(realPath, hashPath))
     } catch (_) {
-      return
+
     }
   }))
 
@@ -148,7 +148,7 @@ async function duplicate (name: string, target: string) {
   if (prev) return false
 
   const [err, duplicated] = await tryCatch(EmoticonModel.create({
-    name, path: targetEmoticon.path, equivalents: [ targetEmoticon.name ]
+    name, path: targetEmoticon.path, equivalents: [targetEmoticon.name]
   }))
 
   if (err) return false

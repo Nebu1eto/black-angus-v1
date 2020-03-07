@@ -23,11 +23,11 @@ export const presentGetRiverTemperature: Presenter = async () => {
     .setTitle('한강 수온')
     .setFooter(`${time} 기준 데이터입니다.`)
 
-  for (const [ place, temperature ] of data) {
+  for (const [place, temperature] of data) {
     embed = embed.addField(`${place} 측정소`, temperature, true)
   }
 
-  return [ embed ]
+  return [embed]
 }
 
 export const presentGetAirQuality: Presenter = async (map: KeyValueString, context: Message | PartialMessage) => {
@@ -78,7 +78,7 @@ export const presentGetAirQuality: Presenter = async (map: KeyValueString, conte
       } 측정소의 데이터입니다.`
     )
 
-  const keys = Object.keys(fieldMap) as Array<AQIFields>
+  const keys = Object.keys(fieldMap) as AQIFields[]
   for (const field of keys) {
     if (!airResult.hasOwnProperty(field)) continue
     const result = airResult[field] as IAQIField
@@ -104,18 +104,18 @@ export const presentGetWeather: Presenter = async (map: KeyValueString, context:
     .sort((x, y) => y[0] - x[0])
     .map(([_, record]) => record)
     .map(record => {
-      let emoji =
+      const emoji =
         record.rain.is_raining === 'Rain'
           ? record.temperature && record.temperature < 0
             ? ':snowflake:'
             : ':umbrella:'
-          : [21, 22, 23, 0, 1, 2, 3, 4, 5, 6].indexOf(
+          : [21, 22, 23, 0, 1, 2, 3, 4, 5, 6].includes(
               record.observedAt.getHours()
-            ) !== -1
+            )
           ? ':crescent_moon:'
           : ':sunny:'
 
-      let rain = ((isRaining: typeof record.rain.is_raining) => {
+      const rain = ((isRaining: typeof record.rain.is_raining) => {
         switch (isRaining) {
           case 'Rain':
             return `예 (15분: ${record.rain.rain15.toFixed(
@@ -144,7 +144,7 @@ export const presentGetWeather: Presenter = async (map: KeyValueString, context:
       if (record.temperature) embed = embed.addField('기온', `${record.temperature.toFixed(1)}℃`, true)
       if (record.humidity) embed = embed.addField('습도', `${record.humidity}%`, true)
       if (record.atmospheric) embed = embed.addField('기압', `${record.atmospheric}hPa`, true)
-      if (['No', 'Unavailable'].indexOf(record.wind1.direction_text) === -1) {
+      if (!['No', 'Unavailable'].includes(record.wind1.direction_text)) {
         embed = embed.addField(
           '풍량',
           `${record.wind1.direction_text

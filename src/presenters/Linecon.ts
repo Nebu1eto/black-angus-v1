@@ -77,7 +77,7 @@ export const presentRenameLinecon: Presenter = async (key: KeyValueString) => {
   ]
 }
 
-export const presentListLinecon: Presenter = async (key: KeyValueString) => {
+export const presentListLinecon: Presenter = async () => {
   const result = (await LineconService.getLinecons()).map(con => con.name)
   return [
     '현재 기준 라인콘 목록입니다.',

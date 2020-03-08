@@ -38,6 +38,8 @@
     "eslint-plugin-prettier": "^3.1.2",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1",
+    "husky": "^4.2.3",
+    "prettier": "^1.19.1",
     "rimraf": "^3.0.2",
     "semantic-release": "^17.0.4",
     "ts-node": "^8.6.2",
@@ -69,7 +71,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "# npm run lint",
+      "pre-commit": "npm run lint",
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
   },
@@ -81,5 +83,10 @@
     "require": [
       "ts-node/register"
     ]
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
   }
 }

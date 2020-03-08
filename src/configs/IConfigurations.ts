@@ -20,8 +20,9 @@ export interface IConfigurations {
   WAQI_API_KEY: string
 }
 
-export const BOT_CONFIG: IConfigurations = require(
-  (process.env.CONFIG_FILE as string).startsWith('.')
-    ? path.join(process.cwd(), process.env.CONFIG_FILE as string)
-    : (process.env.CONFIG_FILE as string)
-)
+export const BOT_CONFIG: IConfigurations = (() => {
+  const basePath = process.env.RAW_JSON_FILE ?? './env/config.json'
+  const rawBasePath = basePath.startsWith('.') ? path.join(process.cwd(), basePath) : basePath
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  return require(rawBasePath) as IConfigurations
+})()

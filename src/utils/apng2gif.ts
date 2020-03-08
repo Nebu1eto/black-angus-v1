@@ -57,7 +57,7 @@ export default function apng2gif (
       if (code === 0) {
         resolve()
       } else {
-        reject('Subprocess failed: ' + code)
+        reject(new Error(`Subprocess failed: ${code}`))
       }
     })
   })

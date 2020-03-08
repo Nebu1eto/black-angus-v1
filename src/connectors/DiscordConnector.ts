@@ -6,7 +6,6 @@ import { BOT_CONFIG } from '../configs/IConfigurations'
 import { CommandFactory } from '../core/CommandFactory'
 import { LoggingQueue } from '../services/LoggingQueue'
 import { flatPromiseMap } from '../utils/flatPromiseMap'
-import { tryCatch } from '../utils/tryCatch'
 
 export type MessageCallback = (message: Message) => Promise<any>
 
@@ -113,13 +112,13 @@ export class DiscordConnector {
       })
     })
 
-    this.client.on('message', async (message) => {
-      const [error] = await tryCatch(CommandFactory.getInstance().process(message))
-      if (error) {
-        LoggingQueue.errorSubject.next({
-          error, time: new Date(), context: message
+    this.client.on('message', (message) => {
+      CommandFactory.getInstance().process(message)
+        .catch(error => {
+          LoggingQueue.errorSubject.next({
+            error, time: new Date(), context: message
+          })
         })
-      }
     })
 
     // TODO: Put token in here.

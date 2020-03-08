@@ -23,7 +23,7 @@ export class Emoticon extends BasePresentedCommand {
   prefix: string = BOT_CONFIG.DEBUG_EXECUTION ? '$' : '~'
 
   async action (context: Message | PartialMessage) {
-    if (!context.content!.startsWith(this.prefix)) return
+    if (!((context.content ?? '').startsWith(this.prefix))) return
 
     await super.action(context, this.presenter)
     await super.action(context, presentFetchLinecon)

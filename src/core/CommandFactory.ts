@@ -6,8 +6,8 @@ import { ko } from 'date-fns/locale'
 import { format } from 'date-fns'
 
 export function CommandDefinition () {
-  return (target: new () => ICommand) => {
-    CommandFactory.getInstance().addCommand(new target())
+  return (Command: new () => ICommand) => {
+    CommandFactory.getInstance().addCommand(new Command())
   }
 }
 

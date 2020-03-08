@@ -45,9 +45,9 @@ async function migrate () {
   }
 
   // 3. import Key-Value JSON Files
-  const rawBasePath = (process.env.RAW_JSON_FILE as string).startsWith('.')
-    ? path.join(process.cwd(), process.env.RAW_JSON_FILE as string)
-    : (process.env.RAW_JSON_FILE as string)
+  const basePath = process.env.RAW_JSON_FILE ?? './env/config.json'
+  const rawBasePath = basePath.startsWith('.') ? path.join(process.cwd(), basePath) : basePath
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const rawMap: { [key: string]: string } = require(rawBasePath)
 
   // 4. rename as sha-1 hash and move files, create map of file names
@@ -133,10 +133,10 @@ async function upload (name: string, path: string) {
     name, path
   }))
 
-  if (err) return false
+  if (err ?? !emoticon) return false
 
   await EmoticonNameModel.create({ name })
-  await insertLog(EmoticonActionType.CREATE, emoticon!)
+  await insertLog(EmoticonActionType.CREATE, emoticon)
   return true
 }
 
@@ -151,7 +151,7 @@ async function duplicate (name: string, target: string) {
     name, path: targetEmoticon.path, equivalents: [targetEmoticon.name]
   }))
 
-  if (err) return false
+  if (err ?? !duplicated) return false
 
   const equivalents = await EmoticonModel.find({
     name: { $in: [...targetEmoticon.equivalents, target] }
@@ -165,7 +165,7 @@ async function duplicate (name: string, target: string) {
   }))
 
   await EmoticonNameModel.create({ name })
-  await insertLog(EmoticonActionType.CREATE, duplicated!)
+  await insertLog(EmoticonActionType.CREATE, duplicated)
   return true
 }
 

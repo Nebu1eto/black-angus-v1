@@ -80,7 +80,7 @@ export const presentGetAirQuality: Presenter = async (map: KeyValueString, conte
 
   const keys = Object.keys(fieldMap) as AQIFields[]
   for (const field of keys) {
-    if (!airResult.hasOwnProperty(field)) continue
+    if (!airResult[field]) continue
     const result = airResult[field] as IAQIField
     attach = attach.addField(
       fieldMap[field],
@@ -115,6 +115,7 @@ export const presentGetWeather: Presenter = async (map: KeyValueString, context:
           ? ':crescent_moon:'
           : ':sunny:'
 
+      // eslint-disable-next-line @typescript-eslint/camelcase
       const rain = ((isRaining: typeof record.rain.is_raining) => {
         switch (isRaining) {
           case 'Rain':

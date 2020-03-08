@@ -15,10 +15,7 @@ rules:
       - test
       - revert
       - chore
-  scope-enum:
-    - 2
-    - always
   subject-case:
     - 2
     - always
-    - 'sentence-case'
+    - 'lower-case'

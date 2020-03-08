@@ -50,7 +50,7 @@ export const presentUpdateEmoticon: Presenter = async (map: KeyValueString, cont
 }
 
 export const presentDeleteEmoticon: Presenter = async (map: KeyValueString, context: Message | PartialMessage) => {
-  const result = await EmoticonService.delete(context, map.name)
+  const result = await EmoticonService.remove(context, map.name)
   return [
     result
       ? `${map.name} 항목이 존재하지 않습니다.`

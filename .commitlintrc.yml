@@ -15,6 +15,7 @@ rules:
       - test
       - revert
       - chore
+      - release
   subject-case:
     - 2
     - always

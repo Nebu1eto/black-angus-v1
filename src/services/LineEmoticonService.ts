@@ -7,7 +7,7 @@ import sharp from 'sharp'
 import { URLSearchParams } from 'url'
 import util from 'util'
 import { BOT_CONFIG } from '../configs/IConfigurations'
-import { Linecon, LineconCategory, LineconCategoryModel, LineconModel, SearchResult } from '../models/Linecon'
+import { Emoticon, EmoticonCategory, EmoticonCategoryModel, EmoticonModel, EmoticonType } from '../models/Emoticon'
 import apng2gif from '../utils/apng2gif'
 import { isAnimatedPng } from '../utils/imageMeta'
 import { tryCatch } from '../utils/tryCatch'
@@ -20,6 +20,12 @@ const fakeUA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
   'AppleWebKit/537.36 (KHTML, like Gecko) ' +
   'Chrome/79.0.3919.0 Safari/537.36'
+
+export interface SearchResult {
+  title: string,
+  id: number,
+  link: string,
+}
 
 async function initialize () {
   const [err, result] = await tryCatch(stat(BOT_CONFIG.LINECON_FILE_PATH))
@@ -35,7 +41,7 @@ async function initialize () {
 
 async function searchEmoticons (keyword: string, page: number = 1, limit: number = 10): Promise<[number, SearchResult[]]> {
   // download and load with parser
-  const body: any = await got.get(`https://store.line.me/api/search/sticker`, {
+  const body: any = await got.get('https://store.line.me/api/search/sticker', {
     headers: {
       'User-Agent': fakeUA,
       'X-Requested-With': 'XMLHttpRequest',
@@ -61,16 +67,21 @@ async function searchEmoticons (keyword: string, page: number = 1, limit: number
   })]
 }
 
-async function initializeEmoticons (id: number, name: string): Promise<[LineconCategory, Linecon[]]> {
+async function initializeEmoticons (id: number, name: string): Promise<[EmoticonCategory, Emoticon[]]> {
   // if already exists return model.
-  const prev = await LineconCategoryModel.findOne({ originId: id }).exec()
+  const prev = await EmoticonCategoryModel.findOne({
+    originId: id,
+    type: EmoticonType.LINE,
+  }).exec()
+
   if (prev) {
-    return [prev, await LineconModel.find({ category: prev._id }).exec()]
+    return [prev, await EmoticonModel.find({ category: prev._id }).exec()]
   }
 
   // download and load with parser
+  const referenceLink = `https://line.me/S/sticker/${id}/?lang=ko&ref=gnsh_stickerDetail`
   const { body } = await got.get(
-    `https://line.me/S/sticker/${id}/?lang=ko&ref=gnsh_stickerDetail`,
+    referenceLink,
     {
       headers: {
         'User-Agent': fakeUA
@@ -99,8 +110,8 @@ async function initializeEmoticons (id: number, name: string): Promise<[LineconC
   // create folder, and download images
   const folderPath = path.join(BOT_CONFIG.LINECON_FILE_PATH, `${id}`)
   await mkdir(folderPath)
-  const category = await LineconCategoryModel.create({
-    title, originId: id, name, path: folderPath
+  const category = await EmoticonCategoryModel.create({
+    type: EmoticonType.LINE, title, originId: id, name, referenceLink, path: folderPath
   })
 
   await Promise.all(emoticonUrls.map(async (url, index) => {
@@ -131,65 +142,38 @@ async function initializeEmoticons (id: number, name: string): Promise<[LineconC
       .png()
       .toFile(thumbnailPath)
 
-    return LineconModel.create({
+    return await EmoticonModel.create({
+      type: EmoticonType.LINE,
       category,
       animated,
+      voiceAttached: false,
       name: `${name}_${index}`,
       fullPath: animated ? gifFilePath : pngFilePath,
       thumbnailPath
     })
   }))
 
-  const linecons = await LineconModel.find({ category: category._id }).exec()
+  const emoticons = await EmoticonModel.find({ category: category._id }).exec()
 
   LoggingQueue.debugSubject.next({
-    title: 'Debug Linecon - Category',
+    title: 'Debug LineEmoticon - Category',
     message: JSON.stringify(category.toJSON()),
     forced: true
   })
 
   LoggingQueue.debugSubject.next({
-    title: 'Debug Linecon - Linecons',
-    message: JSON.stringify(linecons.map(linecon => linecon.toJSON())),
+    title: 'Debug LineEmoticon - LineEmoticons',
+    message: JSON.stringify(emoticons.map(emoticon => emoticon.toJSON())),
     forced: true
   })
 
-  return [category, linecons]
+  return [category, emoticons]
 }
 
-function getLinecons () {
-  return LineconModel.find().exec()
-}
-
-async function fetchEmoticons (name: string): Promise<[LineconCategory, Linecon[]] | undefined> {
-  const category = await LineconCategoryModel.findOne({ name }).exec()
-  if (!category) return undefined
-
-  const linecons = await LineconModel.find({ _id: category._id }).exec()
-  return [category, linecons]
-}
-
-function fetchEmoticon (keyword: string) {
-  return LineconModel.findOne({ name: keyword }).exec()
-}
-
-async function renameEmoticon (keyword: string, newKeyword: string) {
-  const prev = await LineconModel.findOne({ name: keyword }).exec()
-  if (!prev) return undefined
-
-  prev.name = newKeyword
-  await prev.save()
-  return prev
-}
-
-const LineconService = {
+const LineEmoticonService = {
   initialize,
   searchEmoticons,
   initializeEmoticons,
-  getLinecons,
-  fetchEmoticon,
-  fetchEmoticons,
-  renameEmoticon
 }
 
-export default LineconService
+export default LineEmoticonService

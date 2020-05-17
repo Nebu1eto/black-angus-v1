@@ -110,10 +110,10 @@ export const presentGetWeather: Presenter = async (map: KeyValueString, context:
             ? ':snowflake:'
             : ':umbrella:'
           : [21, 22, 23, 0, 1, 2, 3, 4, 5, 6].includes(
-              record.observedAt.getHours()
-            )
-          ? ':crescent_moon:'
-          : ':sunny:'
+            record.observedAt.getHours()
+          )
+            ? ':crescent_moon:'
+            : ':sunny:'
 
       // eslint-disable-next-line @typescript-eslint/camelcase
       const rain = ((isRaining: typeof record.rain.is_raining) => {

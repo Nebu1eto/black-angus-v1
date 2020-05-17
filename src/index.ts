@@ -1,11 +1,11 @@
-import { DiscordConnector } from './connectors/DiscordConnector'
 import { Promise as Bluebird } from 'bluebird'
-import { initializeCommands } from './core/initializeCommands'
-import { connectDatabase } from './utils/connectDatabase'
 import { BOT_CONFIG } from './configs/IConfigurations'
+import { DiscordConnector } from './connectors/DiscordConnector'
+import { initializeCommands } from './core/initializeCommands'
 import EmoticonService from './services/EmoticonService'
+import LineEmoticonService from './services/LineEmoticonService'
 import { LoggingQueue } from './services/LoggingQueue'
-import LineconService from './services/LineconService'
+import { connectDatabase } from './utils/connectDatabase'
 
 // Install Bluebird Polyfill.
 global.Promise = Bluebird
@@ -23,7 +23,7 @@ class BlackAngusBot {
     }
 
     if (BOT_CONFIG.LINECON_ENABLED) {
-      await LineconService.initialize()
+      await LineEmoticonService.initialize()
     }
   }
 }

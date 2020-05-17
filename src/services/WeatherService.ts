@@ -83,7 +83,7 @@ async function getRiverTemp () {
     .split('\n')[1]
     .split('"')
     .filter(elem => !isNaN(parseInt(elem, 0))) ??
-      [format(new Date(), "yyyyMMdd"), `${format(new Date(), "HH")}00`]
+      [format(new Date(), 'yyyyMMdd'), `${format(new Date(), 'HH')}00`]
   const time = `${baseTimeCode[0].substring(4, 6)}월 ${
     baseTimeCode[0].substring(6, 8)}일 ${baseTimeCode[1]}시`
 

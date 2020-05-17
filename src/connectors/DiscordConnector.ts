@@ -59,7 +59,7 @@ export class DiscordConnector {
         const messages = [
           // Need to Know Context and Time
           (context !== undefined)
-          ? `${timeStr} <${context.author?.username}#` +
+            ? `${timeStr} <${context.author?.username}#` +
           `${context.author?.discriminator}> ${context.content}` : timeStr,
 
           // Error Title, Stacktrace

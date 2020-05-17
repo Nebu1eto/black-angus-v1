@@ -1,7 +1,4 @@
-import { DocumentType } from '@typegoose/typegoose'
 import crypto from 'crypto'
-import { format } from 'date-fns'
-import { ko } from 'date-fns/locale'
 import { Message, PartialMessage } from 'discord.js'
 import fs from 'fs'
 import got from 'got'
@@ -10,7 +7,7 @@ import path from 'path'
 import { URL } from 'url'
 import util from 'util'
 import { BOT_CONFIG } from '../configs/IConfigurations'
-import { Emoticon, EmoticonActionType, EmoticonLogModel, EmoticonModel, EmoticonNameModel } from '../models/Emoticon'
+import { EmoticonModel, EmoticonNameModel } from '../models/Emoticon'
 import { tryCatch } from '../utils/tryCatch'
 import { LoggingQueue } from './LoggingQueue'
 
@@ -52,18 +49,6 @@ async function downloadFile (rawUrl: string) {
   return fileName
 }
 
-function insertLog (type: EmoticonActionType, context: Message | PartialMessage, emoticon: DocumentType<Emoticon>) {
-  return EmoticonLogModel.create({
-    type,
-    context: `[${format(new Date(), 'yyyy. MM. dd. a hh:mm:ss', {
-      locale: ko
-    })}] <${context.author?.username}#${context.author?.discriminator}> ${
-      context.content
-    }`,
-    emoticon
-  })
-}
-
 async function initialize () {
   const [err, result] = await tryCatch(stat(BOT_CONFIG.EMOTICON_FILE_PATH))
   if (err) {
@@ -80,9 +65,9 @@ async function upload (context: Message | PartialMessage, name: string, rawUrl: 
   const prev = await EmoticonModel.findOne({ name, removed: false }).exec()
   if (prev) return -1
 
-  const path = await downloadFile(rawUrl)
+  const fullPath = await downloadFile(rawUrl)
   const [err, emoticon] = await tryCatch(EmoticonModel.create({
-    name, path
+    name, fullPath
   }))
 
   if (err ?? !emoticon) {
@@ -92,7 +77,6 @@ async function upload (context: Message | PartialMessage, name: string, rawUrl: 
   }
 
   await EmoticonNameModel.create({ name })
-  await insertLog(EmoticonActionType.CREATE, context, emoticon)
   return 1
 }
 
@@ -104,7 +88,7 @@ async function duplicate (context: Message | PartialMessage, name: string, targe
   if (prev) return -1
 
   const [err, duplicated] = await tryCatch(EmoticonModel.create({
-    name, path: targetEmoticon.path, equivalents: [targetEmoticon.name]
+    name, fullPath: targetEmoticon.fullPath, equivalents: [targetEmoticon.name]
   }))
 
   if (err ?? !duplicated) {
@@ -121,37 +105,13 @@ async function duplicate (context: Message | PartialMessage, name: string, targe
     emoticon.equivalents.push(name)
     emoticon.updatedAt = new Date()
     await emoticon.save()
-    await insertLog(EmoticonActionType.UPDATE, context, emoticon)
   }))
 
   await EmoticonNameModel.create({ name })
-  await insertLog(EmoticonActionType.CREATE, context, duplicated)
   return 1
 }
 
-async function update (context: Message | PartialMessage, name: string, newUrl: string) {
-  const prev = await EmoticonModel.findOne({ name, removed: false }).exec()
-  if (!prev) return undefined
-
-  const list = [...prev.equivalents, prev.name]
-  const newPath = await downloadFile(newUrl)
-  const emoticons = await EmoticonModel.find({
-    removed: false,
-    name: { $in: list }
-  }).exec()
-
-  // update self and equivalent emoticon's path
-  await Promise.all(emoticons.map(async emoticon => {
-    emoticon.path = newPath
-    emoticon.updatedAt = new Date()
-    await emoticon.save()
-    await insertLog(EmoticonActionType.UPDATE, context, emoticon)
-  }))
-
-  return emoticons
-}
-
-async function remove (context: Message | PartialMessage, name: string) {
+async function remove (__: Message | PartialMessage, name: string) {
   const prev = await EmoticonModel.findOne({ name, removed: false }).exec()
   if (!prev) return false
 
@@ -171,35 +131,26 @@ async function remove (context: Message | PartialMessage, name: string) {
   await Promise.all(equivalents.map(async emoticon => {
     emoticon.equivalents = emoticon.equivalents.filter(str => str !== name)
     emoticon.updatedAt = new Date()
-    await insertLog(EmoticonActionType.UPDATE, context, emoticon)
     await emoticon.save()
   }))
 
-  await insertLog(EmoticonActionType.DELETE, context, prev)
   return true
 }
 
-async function fetch (context: Message | PartialMessage, name: string) {
+async function fetch (__: Message | PartialMessage, name: string) {
   const match = await EmoticonModel.findOne({ name, removed: false }).exec()
   if (match) {
-    await insertLog(EmoticonActionType.READ, context, match)
-    return match.path
+    return match.fullPath
   }
 
   return undefined
 }
 
-async function search (context: Message | PartialMessage, name: string) {
-  const searched = _.uniq((await EmoticonModel.find({
+async function search (__: Message | PartialMessage, name: string) {
+  return _.uniq((await EmoticonModel.find({
     name: new RegExp(name),
     removed: false
   }).exec())).sort()
-
-  await Promise.all(searched.map(search => {
-    return insertLog(EmoticonActionType.SEARCH, context, search)
-  }))
-
-  return searched
 }
 
 async function getEquivalents (name: string) {
@@ -216,7 +167,6 @@ const EmoticonService = {
   initialize,
   upload,
   duplicate,
-  update,
   remove,
   fetch,
   search,

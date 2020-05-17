@@ -2,6 +2,23 @@
   "typescript.tsdk": "node_modules/typescript/lib",
   "editor.insertSpaces": true,
   "editor.tabSize": 2,
+  "javascript.format.enable": false,
+  "javascriptreact.format.enable": false,
+  "typescript.format.enable": false,
+  "typescriptreact.format.enable": false,
+  "[javascript]": {
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": true,
+      "source.fixAll.eslint": true
+    }
+  },
+  "[typescript]": {
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": true,
+      "source.fixAll.eslint": true
+    }
+  },
   "eslint.enable": true,
   "eslint.format.enable": true,
+  "eslint.packageManager": "npm"
 }

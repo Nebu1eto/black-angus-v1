@@ -1,11 +1,8 @@
-import _ from 'lodash'
+import { BOT_CONFIG } from '../../configs/IConfigurations'
+import { ArgumentParser, BasePresentedCommand, Presenter } from '../../core/BasePresentedCommand'
 import { CommandDefinition } from '../../core/CommandFactory'
 import { CommandType } from '../../core/ICommand'
-import { Message, PartialMessage } from 'discord.js'
-import { BOT_CONFIG } from '../../configs/IConfigurations'
-import { BasePresentedCommand, ArgumentParser, Presenter } from '../../core/BasePresentedCommand'
 import { presentFetchEmoticon } from '../../presenters/Emoticon'
-import { presentFetchLinecon } from '../../presenters/Linecon'
 
 @CommandDefinition()
 export class Emoticon extends BasePresentedCommand {
@@ -21,11 +18,4 @@ export class Emoticon extends BasePresentedCommand {
   type: CommandType = CommandType.VARIABLE_COMMANDS
 
   prefix: string = BOT_CONFIG.DEBUG_EXECUTION ? '$' : '~'
-
-  async action (context: Message | PartialMessage) {
-    if (!((context.content ?? '').startsWith(this.prefix))) return
-
-    await super.action(context, this.presenter)
-    await super.action(context, presentFetchLinecon)
-  }
 }

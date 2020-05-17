@@ -1,4 +1,4 @@
-import { MessageAttachment, Message, PartialMessage } from 'discord.js'
+import { Message, MessageAttachment, PartialMessage } from 'discord.js'
 import { KeyValueString, Presenter } from '../core/BasePresentedCommand'
 import EmoticonService from '../services/EmoticonService'
 
@@ -39,16 +39,6 @@ export const presentDuplicateEmoticon: Presenter = async (map: KeyValueString, c
   }
 }
 
-export const presentUpdateEmoticon: Presenter = async (map: KeyValueString, context: Message | PartialMessage) => {
-  const { name, url } = map
-  const results = await EmoticonService.update(context, name, url)
-  if (!results) return [`${name} 항목이 존재하지 않습니다.`]
-  return [
-    // results에는 자기 자신도 포함되어있기 때문에 length - 1 해야함.
-    `${name} 이모티콘과 동의어 ${results.length - 1}개를 업데이트하였습니다.`
-  ]
-}
-
 export const presentDeleteEmoticon: Presenter = async (map: KeyValueString, context: Message | PartialMessage) => {
   const result = await EmoticonService.remove(context, map.name)
   return [
@@ -73,8 +63,8 @@ export const presentGetEquivalentsEmoticon: Presenter = async (map: KeyValueStri
   const equivalents = await EmoticonService.getEquivalents(map.name)
   return [
     equivalents
-     ? `${map.name} 항목의 동의어는 다음과 같습니다: \`${equivalents.join('`, `')}\``
-     : `${map.name} 항목이 존재하지 않습니다.`
+      ? `${map.name} 항목의 동의어는 다음과 같습니다: \`${equivalents.join('`, `')}\``
+      : `${map.name} 항목이 존재하지 않습니다.`
   ]
 }
 
@@ -84,6 +74,6 @@ export const presentListEmoticon: Presenter = async () => {
   return [
     '현재 기준 디시콘 목록입니다.', new MessageAttachment(
       Buffer.from(result.sort().join('\n'), 'utf8'),
-    'dccon_list.txt')
+      'dccon_list.txt')
   ]
 }

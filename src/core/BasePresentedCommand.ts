@@ -43,9 +43,9 @@ export abstract class BasePresentedCommand implements ICommand {
     // 3. get arguments with parser and return presented value
     const args = this.argsParser(context)
     const presented = await presenter(args, context)
-    
+
     // discord.js's type definition is totally damnsh*t.
-    // @ts-ignore
+    // @ts-expect-error
     if (presented && presented.length > 0) await channel?.send(...presented)
   }
 }

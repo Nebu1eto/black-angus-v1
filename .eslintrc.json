@@ -1,7 +1,7 @@
 {
   "extends": [
     "standard-with-typescript",
-    "prettier/@typescript-eslint",
+    "prettier",
     "plugin:ava/recommended",
     "plugin:import/errors",
     "plugin:import/warnings"

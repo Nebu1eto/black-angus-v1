@@ -115,7 +115,6 @@ export const presentGetWeather: Presenter = async (map: KeyValueString, context:
           ? ':crescent_moon:'
           : ':sunny:'
 
-      // eslint-disable-next-line @typescript-eslint/camelcase
       const rain = ((isRaining: typeof record.rain.is_raining) => {
         switch (isRaining) {
           case 'Rain':

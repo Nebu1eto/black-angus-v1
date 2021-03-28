@@ -131,7 +131,7 @@ async function initializeEmoticons (id: number, name: string): Promise<[LineconC
       .png()
       .toFile(thumbnailPath)
 
-    return LineconModel.create({
+    return await LineconModel.create({
       category,
       animated,
       name: `${name}_${index}`,

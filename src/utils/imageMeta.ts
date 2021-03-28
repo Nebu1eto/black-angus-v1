@@ -80,6 +80,7 @@ function check (buffer: Buffer, codes: number[], offset: number = 0) {
 }
 
 function findIndex (buffer: Buffer, codes: number[], from: number = 0, to: number = buffer.length) {
+  // eslint-disable-next-line no-unreachable-loop
   for (let i = from; i < to; i++) {
     for (let j = 0; j < codes.length; j++) {
       if (buffer[i + j] !== codes[j]) continue
